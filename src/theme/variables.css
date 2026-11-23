@@ -532,19 +532,21 @@
 .smartlab-segment ion-segment-button {
   min-width: 0;
   min-height: 44px;
-  --padding-start: 6px;
-  --padding-end: 6px;
+  --padding-start: 2px;
+  --padding-end: 2px;
   --indicator-color: #4ade80;
   --color: #052e16;
   --color-checked: #052e16;
   --border-radius: 0px;
   text-transform: none;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
 }
 
 @media (min-width: 640px) {
   .smartlab-segment ion-segment-button {
+    --padding-start: 8px;
+    --padding-end: 8px;
     font-size: 0.875rem;
   }
 }
