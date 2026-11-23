@@ -3,6 +3,7 @@ import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet, setupIonicReact } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { IncidentsProvider } from './context/IncidentsContext';
+import ContextualCursor from './components/ContextualCursor';
 import Home from './pages/Home';
 import IncidentDetail from './pages/IncidentDetail';
 
@@ -29,6 +30,7 @@ setupIonicReact({
 
 const App: React.FC = () => (
   <IonApp>
+    <ContextualCursor />
     <IncidentsProvider>
       <IonReactRouter>
         <IonRouterOutlet>
