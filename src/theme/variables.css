@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ion-color-primary: #2563eb;
+  --ion-color-primary-rgb: 37, 99, 235;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #2157cf;
+  --ion-color-primary-tint: #3b73ed;
+
+  --ion-background-color: #f8fafc;
+  --ion-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Personalización Shadow DOM para IonItem en listado de incidencias */
+.incident-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+}
