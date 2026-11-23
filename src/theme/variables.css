@@ -18,4 +18,59 @@
 .incident-item {
   --padding-start: 16px;
   --inner-padding-end: 16px;
+  --background: #ffffff;
+  --background-hover: #f8fafc;
+}
+
+/* Personalización Shadow DOM para barra de búsqueda responsiva */
+.smartlab-searchbar {
+  --background: #ffffff;
+  --border-radius: 0.75rem;
+  --box-shadow: 0 1px 2px 0 rgb(15 23 42 / 0.08);
+  --color: #0f172a;
+  --placeholder-color: #475569;
+  --icon-color: #475569;
+  padding: 0;
+}
+
+/* Filtro segmentado adaptable a 360px sin desbordamiento ni mayúsculas forzadas */
+.smartlab-segment {
+  --background: #e2e8f0;
+  border-radius: 0.75rem;
+  padding: 3px;
+}
+
+.smartlab-segment ion-segment-button {
+  min-width: 0;
+  min-height: 44px;
+  --padding-start: 6px;
+  --padding-end: 6px;
+  --indicator-color: #ffffff;
+  --color: #334155;
+  --color-checked: #1d4ed8;
+  --border-radius: 0.5rem;
+  text-transform: none;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+@media (min-width: 640px) {
+  .smartlab-segment ion-segment-button {
+    font-size: 0.875rem;
+  }
+}
+
+/* Chips de estado con contraste WCAG 2.2 AA/AAA */
+.smartlab-chip-pending {
+  --background: #fef3c7;
+  --color: #78350f;
+  border: 1px solid #fcd34d;
+  pointer-events: none;
+}
+
+.smartlab-chip-resolved {
+  --background: #d1fae5;
+  --color: #064e3b;
+  border: 1px solid #6ee7b7;
+  pointer-events: none;
 }

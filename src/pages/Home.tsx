@@ -215,19 +215,22 @@ const Home: React.FC = () => {
           </section>
 
           {/* Bloque 2: Barra de búsqueda y filtro segmentado */}
-          <section aria-label="Filtros de búsqueda" className="mb-5 space-y-3">
+          <section
+            aria-label="Filtros de búsqueda"
+            className="mb-5 grid grid-cols-1 gap-3 lg:grid-cols-12 lg:items-center"
+          >
             <IonSearchbar
               value={searchQuery}
               onIonInput={(e) => setSearchQuery(e.detail.value ?? '')}
               placeholder="Buscar por código, título o aula..."
               debounce={200}
-              className="smartlab-searchbar"
+              className="smartlab-searchbar lg:col-span-6"
               aria-label="Buscar incidencias"
             />
 
             <IonSegment
               value={activeFilter}
-              className="smartlab-segment"
+              className="smartlab-segment lg:col-span-6"
               onIonChange={(e) =>
                 setActiveFilter((e.detail.value as FilterOption) ?? 'todas')
               }
@@ -250,7 +253,10 @@ const Home: React.FC = () => {
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 Incidencias Registradas ({filteredIncidents.length})
               </h2>
-              <span className="text-xs text-slate-600">
+              <span className="text-xs text-slate-600 sm:hidden">
+                Desliza para acciones
+              </span>
+              <span className="hidden text-xs text-slate-600 sm:inline">
                 Pulsa para ver detalle o desliza para acciones
               </span>
             </div>
