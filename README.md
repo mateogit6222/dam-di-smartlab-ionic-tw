@@ -21,12 +21,14 @@ Proyecto para el módulo **Desarrollo de Interfaces (Código 0488)** — 2.º CF
 - `vercel.json`: Configuración de rewrite SPA para evitar errores `404` al recargar rutas en Vercel.
 - `Dockerfile` y `nginx.conf`: Empaquetado multietapa listo para despliegue en contenedor.
 
-## Sistema Neo-Brutalista, Interacciones GPU y Layout `dvh`
+## Sistema Verde Neo-Brutalista, Animaciones GPU y Layout `dvh`
 
-1. **Neo-Brutalismo e Ingeniería Tipográfica:**
-   - Tipografía variable fluida (`Space Grotesk` y `JetBrains Mono`) con `clamp(2rem, 6vw, 4.5rem)`, *negative tracking* (`-0.04em`), *tight leading* (`0.9`) y Split-Text Line Reveal en el hero.
-   - Código arquitectónico contorneado (`-webkit-text-stroke: 2px #0f172a`), bordes `2px solid #0f172a`, sombras duras offset (`4px`/`6px`), textura procedural SVG (`feTurbulence`) y marquesina cinética GPU (`TelemetryMarquee`).
-2. **Interacciones Reactivas y Accesibilidad de Movimiento:**
+1. **Paleta Verde Neo-Brutalista e Ingeniería Tipográfica:**
+   - **Tokens cromáticos WCAG 2.2 AA/AAA:** Tinta y bordes `#052e16`, primario Ionic `#15803d`, acento verde `#4ade80` / `#86efac` y lienzo base `#f0f7f2` con *Mesh Gradient* animado (`oklch()`) y textura procedural SVG (`feTurbulence`).
+   - Tipografía variable fluida (`Space Grotesk` y `JetBrains Mono`) con `clamp(2rem, 6vw, 4.5rem)`, *negative tracking* (`-0.04em`), *tight leading* (`0.9`), Split-Text Line Reveal y `clip-path` reveal en la insignia `0488 // DAM` contorneada (`-webkit-text-stroke: 2px #052e16`).
+   - Marquesina cinética GPU (`TelemetryMarquee`), bordes `2px solid #052e16` y sombras duras offset (`4px`/`6px`).
+2. **Animaciones GPU, Interacciones Reactivas y Accesibilidad:**
+   - Entrada escalonada (*stagger*) en tarjetas KPI y listado (`animation-fill-mode: backwards` para no interferir con `style.transform`), animación `value-pop` al cambiar contadores, LED operativo pulsante, icono de sincronización rotatorio y barra de resolución animada (`scaleX` + *shimmer*).
    - Controles magnéticos (`useMagneticControl`) e inclinación 3D reactiva (`usePerspectiveTilt`) limitados estrictamente a puntero de ratón (`pointerType === 'mouse'`) sobre GPU (`transform`) para proteger INP/60 FPS.
    - Skeleton Screens (`IncidentSkeleton`) durante ciclos de sincronización y desactivación completa de movimientos bajo `@media (prefers-reduced-motion: reduce)`.
 3. **Layout Next-Gen (`vh`/`svh`/`dvh`) y RWD Intrínseco:**

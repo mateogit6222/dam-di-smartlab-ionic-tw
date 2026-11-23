@@ -93,13 +93,13 @@ const IncidentDetail: React.FC = () => {
 
           <div className="relative z-10 mx-auto w-full max-w-3xl flex-1 px-4 py-6 sm:px-6">
             {!incident ? (
-              <section className="border-2 border-slate-950 bg-white p-6 text-center shadow-[6px_6px_0px_#0f172a]">
-                <h1 className="text-xl font-bold text-slate-950">
+              <section className="smartlab-card-enter border-2 border-[#052e16] bg-white p-6 text-center shadow-[6px_6px_0px_#052e16]">
+                <h1 className="text-xl font-bold text-[#052e16]">
                   Incidencia no encontrada
                 </h1>
                 <p className="mt-2 text-sm text-slate-700">
                   No existe ningún registro activo con el código{' '}
-                  <span className="font-mono font-bold text-slate-950">
+                  <span className="font-mono font-bold text-[#052e16]">
                     {id}
                   </span>
                   .
@@ -108,7 +108,7 @@ const IncidentDetail: React.FC = () => {
                   <IonButton
                     routerLink="/home"
                     routerDirection="back"
-                    className="min-h-[44px] border-2 border-slate-950 font-mono text-xs font-bold uppercase shadow-[4px_4px_0px_#0f172a]"
+                    className="min-h-[44px] border-2 border-[#052e16] font-mono text-xs font-bold uppercase shadow-[4px_4px_0px_#052e16]"
                   >
                     Volver al listado
                   </IonButton>
@@ -120,11 +120,12 @@ const IncidentDetail: React.FC = () => {
                   ref={cardTilt.ref}
                   onPointerMove={cardTilt.onPointerMove}
                   onPointerLeave={cardTilt.onPointerLeave}
-                  className="smartlab-tilt-card relative overflow-hidden border-2 border-slate-950 bg-white p-5 shadow-[6px_6px_0px_#0f172a] sm:p-6"
+                  style={{ '--stagger-index': 0 } as React.CSSProperties}
+                  className="smartlab-tilt-card smartlab-card-enter relative overflow-hidden border-2 border-[#052e16] bg-white p-5 shadow-[6px_6px_0px_#052e16] sm:p-6"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-sm font-bold text-blue-800">
+                      <span className="font-mono text-sm font-bold text-green-800">
                         {incident.id}
                       </span>
                       <span
@@ -142,7 +143,7 @@ const IncidentDetail: React.FC = () => {
                     </span>
                   </div>
 
-                  <h1 className="mt-3 break-words text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+                  <h1 className="mt-3 break-words text-2xl font-bold tracking-tight text-[#052e16] sm:text-3xl">
                     {incident.title}
                   </h1>
 
@@ -150,17 +151,17 @@ const IncidentDetail: React.FC = () => {
                     <IonIcon
                       icon={locationOutline}
                       aria-hidden="true"
-                      className="shrink-0 text-blue-800"
+                      className="shrink-0 text-green-800"
                     />
                     <span>
                       Ubicación:{' '}
-                      <strong className="text-slate-950">
+                      <strong className="text-[#052e16]">
                         {incident.location}
                       </strong>
                     </span>
                   </p>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t-2 border-slate-950 pt-4">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t-2 border-[#052e16] pt-4">
                     <div className="flex items-center gap-2">
                       <span className="font-mono text-xs font-bold uppercase tracking-wider text-slate-700">
                         Estado actual:
@@ -187,7 +188,7 @@ const IncidentDetail: React.FC = () => {
                       color={
                         incident.status === 'resuelta' ? 'warning' : 'success'
                       }
-                      className="min-h-[44px] border-2 border-slate-950 font-mono text-xs font-bold uppercase shadow-[3px_3px_0px_#0f172a]"
+                      className="min-h-[44px] border-2 border-[#052e16] font-mono text-xs font-bold uppercase shadow-[3px_3px_0px_#052e16]"
                       onClick={handleToggleStatus}
                     >
                       <IonIcon
@@ -204,9 +205,10 @@ const IncidentDetail: React.FC = () => {
 
                 <form
                   onSubmit={handleSaveDescription}
-                  className="mt-6 border-2 border-slate-950 bg-white p-5 shadow-[6px_6px_0px_#0f172a] sm:p-6"
+                  style={{ '--stagger-index': 1 } as React.CSSProperties}
+                  className="smartlab-card-enter mt-6 border-2 border-[#052e16] bg-white p-5 shadow-[6px_6px_0px_#052e16] sm:p-6"
                 >
-                  <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-800">
+                  <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#052e16]">
                     Descripción técnica y seguimiento
                   </h2>
                   <p className="mt-1 text-sm text-slate-700">
@@ -216,7 +218,7 @@ const IncidentDetail: React.FC = () => {
 
                   <IonItem
                     lines="none"
-                    className="mt-4 border-2 border-slate-950 bg-white"
+                    className="mt-4 border-2 border-[#052e16] bg-white"
                   >
                     <IonTextarea
                       label="Detalle técnico"
@@ -238,7 +240,7 @@ const IncidentDetail: React.FC = () => {
                       <IonButton
                         type="submit"
                         expand="block"
-                        className="min-h-[44px] w-full border-2 border-slate-950 font-mono text-xs font-bold uppercase tracking-wider shadow-[4px_4px_0px_#0f172a] sm:w-auto"
+                        className="min-h-[44px] w-full border-2 border-[#052e16] font-mono text-xs font-bold uppercase tracking-wider shadow-[4px_4px_0px_#052e16] sm:w-auto"
                       >
                         <IonIcon
                           slot="start"
@@ -254,7 +256,7 @@ const IncidentDetail: React.FC = () => {
             )}
           </div>
 
-          <footer className="relative z-10 mt-auto border-t-2 border-slate-950 bg-slate-950 px-4 py-3 font-mono text-xs font-semibold text-amber-300 sm:px-6">
+          <footer className="relative z-10 mt-auto border-t-2 border-[#052e16] bg-[#052e16] px-4 py-3 font-mono text-xs font-semibold text-green-300 sm:px-6">
             <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-2">
               <span>SMARTLAB MONITOR // FICHA TÉCNICA</span>
               <span>100DVH // PERSISTENCIA LOCAL</span>

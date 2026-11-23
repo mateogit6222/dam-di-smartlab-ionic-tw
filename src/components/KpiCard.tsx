@@ -12,10 +12,12 @@ export interface KpiCardProps {
   accentClass?: string;
   spanClass?: string;
   progressPercent?: number;
+  staggerIndex?: number;
+  pulseAlert?: boolean;
 }
 
 /**
- * Tarjeta KPI Neo-Brutalista en Bento Grid / Subgrid con inclinación 3D reactiva.
+ * Tarjeta KPI Verde Neo-Brutalista en Bento Grid / Subgrid con entrada escalonada y tilt 3D.
  */
 const KpiCard: React.FC<KpiCardProps> = ({
   label,
@@ -27,19 +29,33 @@ const KpiCard: React.FC<KpiCardProps> = ({
   accentClass = 'bg-white',
   spanClass = '',
   progressPercent,
+  staggerIndex = 0,
+  pulseAlert = false,
 }) => {
   const tilt = usePerspectiveTilt<HTMLElement>({ maxTilt: 6 });
+
+  const normalizedProgress =
+    typeof progressPercent === 'number'
+      ? Math.max(0, Math.min(100, progressPercent))
+      : 0;
 
   return (
     <article
       ref={tilt.ref}
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
-      className={`smartlab-kpi-card smartlab-tilt-card border-2 border-slate-950 p-3.5 shadow-[4px_4px_0px_#0f172a] sm:p-4 ${accentClass} ${spanClass}`}
+      style={{ '--stagger-index': staggerIndex } as React.CSSProperties}
+      className={`smartlab-kpi-card smartlab-tilt-card smartlab-card-enter border-2 border-[#052e16] p-3.5 shadow-[4px_4px_0px_#052e16] sm:p-4 ${accentClass} ${spanClass}`}
     >
-      <div className="flex items-center justify-between gap-2 text-slate-900">
-        <span className="truncate font-mono text-xs font-bold uppercase tracking-wider">
-          {label}
+      <div className="flex items-center justify-between gap-2 text-[#052e16]">
+        <span className="inline-flex min-w-0 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider">
+          {pulseAlert && (
+            <span className="smartlab-pulse-indicator" aria-hidden="true">
+              <span className="smartlab-pulse-ring smartlab-pulse-ring--alert" />
+              <span className="smartlab-pulse-dot smartlab-pulse-dot--alert" />
+            </span>
+          )}
+          <span className="truncate">{label}</span>
         </span>
         <IonIcon
           icon={icon}
@@ -49,7 +65,8 @@ const KpiCard: React.FC<KpiCardProps> = ({
       </div>
 
       <p
-        className={`self-end font-mono text-3xl font-extrabold leading-none tabular-nums sm:text-4xl ${valueColorClass}`}
+        key={value}
+        className={`smartlab-value-pop self-end font-mono text-3xl font-extrabold leading-none tabular-nums sm:text-4xl ${valueColorClass}`}
       >
         {value}
       </p>
@@ -58,24 +75,30 @@ const KpiCard: React.FC<KpiCardProps> = ({
         {typeof progressPercent === 'number' ? (
           <div className="space-y-1">
             <div
-              className="h-2.5 w-full overflow-hidden border-2 border-slate-950 bg-white"
+              className="h-2.5 w-full overflow-hidden border-2 border-[#052e16] bg-white"
               role="progressbar"
-              aria-valuenow={progressPercent}
+              aria-valuenow={normalizedProgress}
               aria-valuemin={0}
               aria-valuemax={100}
-              aria-label={`Tasa de resolución ${progressPercent}%`}
+              aria-label={`Tasa de resolución ${normalizedProgress}%`}
             >
               <div
-                className="h-full bg-emerald-500 transition-all duration-300"
-                style={{ width: `${progressPercent}%` }}
-              />
+                className="smartlab-progress-fill bg-green-500"
+                style={
+                  {
+                    '--progress-scale': normalizedProgress / 100,
+                  } as React.CSSProperties
+                }
+              >
+                <span className="smartlab-progress-shimmer" aria-hidden="true" />
+              </div>
             </div>
-            <p className="font-mono text-[11px] font-bold uppercase tracking-wide text-slate-800">
-              {subtitle ?? `${progressPercent}% resuelto`}
+            <p className="font-mono text-[11px] font-bold uppercase tracking-wide text-[#052e16]">
+              {subtitle ?? `${normalizedProgress}% resuelto`}
             </p>
           </div>
         ) : (
-          <p className="font-mono text-[11px] font-semibold uppercase tracking-wide text-slate-700">
+          <p className="font-mono text-[11px] font-semibold uppercase tracking-wide text-slate-800">
             {subtitle ?? 'Tiempo real'}
           </p>
         )}

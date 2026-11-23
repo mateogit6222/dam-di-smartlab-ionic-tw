@@ -32,7 +32,7 @@ export const INITIAL_INCIDENTS: Incident[] = [
 
 /** Estilos Neo-Brutalistas de contraste WCAG AAA para etiquetas de prioridad. */
 export const PRIORITY_BADGE_STYLES: Record<IncidentPriority, string> = {
-  alta: 'bg-red-200 text-red-950 border-slate-950',
-  media: 'bg-amber-300 text-slate-950 border-slate-950',
-  baja: 'bg-emerald-200 text-emerald-950 border-slate-950',
+  alta: 'bg-red-200 text-red-950 border-[#052e16]',
+  media: 'bg-amber-200 text-amber-950 border-[#052e16]',
+  baja: 'bg-green-200 text-green-950 border-[#052e16]',
 };
