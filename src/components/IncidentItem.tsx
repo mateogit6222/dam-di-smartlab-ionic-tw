@@ -20,21 +20,28 @@ export interface IncidentItemProps {
   onToggleStatus: (id: string) => void;
   onDelete: (id: string) => void;
   onSelect: (id: string) => void;
+  staggerIndex?: number;
 }
 
 /**
- * Fila de incidencia Neo-Brutalista adaptativa mediante CSS Container Queries.
+ * Fila de incidencia Verde Neo-Brutalista adaptativa mediante CSS Container Queries.
  */
 const IncidentItem: React.FC<IncidentItemProps> = ({
   incident,
   onToggleStatus,
   onDelete,
   onSelect,
+  staggerIndex = 0,
 }) => {
   const isResolved = incident.status === 'resuelta';
 
   return (
-    <IonItemSliding className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5">
+    <IonItemSliding
+      style={
+        { '--stagger-index': Math.min(staggerIndex, 6) } as React.CSSProperties
+      }
+      className="group smartlab-item-enter border-2 border-[#052e16] bg-white shadow-[4px_4px_0px_#052e16] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5"
+    >
       <IonItem
         className="incident-item"
         button
@@ -46,7 +53,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-xs font-bold text-blue-800">
+                  <span className="font-mono text-xs font-bold text-green-800">
                     {incident.id}
                   </span>
                   <span
@@ -66,7 +73,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
                 className={`mt-2 break-words text-base font-bold leading-snug ${
                   isResolved
                     ? 'text-slate-600 line-through'
-                    : 'text-slate-950'
+                    : 'text-[#052e16]'
                 }`}
               >
                 {incident.title}
@@ -78,14 +85,14 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
 
               <p className="mt-2.5 font-mono text-xs font-semibold text-slate-700">
                 UBICACIÓN:{' '}
-                <strong className="text-slate-950">{incident.location}</strong>
+                <strong className="text-[#052e16]">{incident.location}</strong>
               </p>
             </div>
 
             <div className="incident-card-actions">
               <button
                 type="button"
-                className="inline-flex min-h-[44px] items-center px-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
+                className="inline-flex min-h-[44px] items-center px-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleStatus(incident.id);
@@ -110,7 +117,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
 
               <button
                 type="button"
-                className="hidden min-h-[44px] min-w-[44px] items-center justify-center border-2 border-slate-950 bg-white text-slate-950 transition-colors hover:bg-red-200 hover:text-red-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 sm:inline-flex"
+                className="hidden min-h-[44px] min-w-[44px] items-center justify-center border-2 border-[#052e16] bg-white text-[#052e16] transition-colors hover:bg-red-200 hover:text-red-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 sm:inline-flex"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(incident.id);
@@ -127,7 +134,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
               <IonIcon
                 icon={chevronForwardOutline}
                 aria-hidden="true"
-                className="ml-0.5 text-base text-slate-950"
+                className="ml-0.5 text-base text-[#052e16] transition-transform duration-150 group-hover:translate-x-1"
               />
             </div>
           </div>

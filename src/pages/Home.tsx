@@ -190,7 +190,7 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      {/* Cabecera móvil/desktop Neo-Brutalista */}
+      {/* Cabecera móvil/desktop Verde Neo-Brutalista */}
       <IonHeader className="ion-no-border">
         <IonToolbar className="smartlab-header-toolbar">
           <IonTitle className="font-mono text-sm font-bold uppercase tracking-wider sm:text-base">
@@ -198,10 +198,10 @@ const Home: React.FC = () => {
           </IonTitle>
           <IonButtons slot="end">
             <div className="mr-3 flex items-center gap-2">
-              <span className="hidden font-mono text-xs font-bold uppercase text-amber-300 sm:inline">
+              <span className="hidden font-mono text-xs font-bold uppercase text-green-300 sm:inline">
                 Pendientes:
               </span>
-              <IonBadge className="border-2 border-slate-950 bg-amber-300 px-2.5 py-1 font-mono text-xs font-extrabold text-slate-950">
+              <IonBadge className="border-2 border-[#052e16] bg-green-400 px-2.5 py-1 font-mono text-xs font-extrabold text-green-950">
                 {metrics.pending}
               </IonBadge>
             </div>
@@ -223,15 +223,21 @@ const Home: React.FC = () => {
         <div className="smartlab-viewport-shell">
           <div className="smartlab-grain-layer" aria-hidden="true" />
 
-          {/* Hero Neo-Brutalista con tipografía fluida y Split-Text Reveal */}
+          {/* Hero Verde Neo-Brutalista con Mesh Gradient GPU y Split-Text Reveal */}
           <section
             aria-label="Cabecera operativa"
-            className="smartlab-hero-stage relative z-10 border-b-2 border-slate-950 bg-[#fffdf7] px-4 py-5 sm:px-6 lg:py-6"
+            className="smartlab-hero-stage relative z-10 border-b-2 border-[#052e16] bg-[#f7fcf9] px-4 py-5 sm:px-6 lg:py-6"
           >
-            <div className="mx-auto flex max-w-6xl flex-col justify-between gap-4 lg:flex-row lg:items-end">
+            <div className="smartlab-hero-mesh" aria-hidden="true" />
+
+            <div className="relative z-10 mx-auto flex max-w-6xl flex-col justify-between gap-4 lg:flex-row lg:items-end">
               <div className="min-w-0">
-                <p className="inline-block border-2 border-slate-950 bg-amber-300 px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-950 shadow-[2px_2px_0px_#0f172a]">
-                  MÓDULO 0488 // 2.º DAM NEBRIJA
+                <p className="inline-flex items-center gap-2 border-2 border-[#052e16] bg-green-300 px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#052e16] shadow-[2px_2px_0px_#052e16]">
+                  <span className="smartlab-pulse-indicator" aria-hidden="true">
+                    <span className="smartlab-pulse-ring" />
+                    <span className="smartlab-pulse-dot" />
+                  </span>
+                  SISTEMA ACTIVO // MÓDULO 0488
                 </p>
 
                 <h1 className="smartlab-display-title mt-3">
@@ -239,13 +245,13 @@ const Home: React.FC = () => {
                     <span className="smartlab-reveal-line">SMARTLAB</span>
                   </span>
                   <span className="smartlab-reveal-mask">
-                    <span className="smartlab-reveal-line smartlab-reveal-line--delay">
+                    <span className="smartlab-reveal-line smartlab-reveal-line--delay text-green-700">
                       MONITOR
                     </span>
                   </span>
                 </h1>
 
-                <p className="mt-2.5 max-w-xl text-sm font-medium text-slate-800">
+                <p className="mt-2.5 max-w-xl text-sm font-medium text-slate-900">
                   Control operativo de incidencias en aulas y laboratorios con
                   persistencia local, tarjetas adaptativas y telemetría en vivo.
                 </p>
@@ -254,7 +260,7 @@ const Home: React.FC = () => {
               <div className="flex flex-col items-start gap-3 lg:items-end">
                 <span
                   aria-hidden="true"
-                  className="smartlab-outlined-text hidden text-4xl font-extrabold leading-none xl:text-5xl lg:block"
+                  className="smartlab-outlined-text smartlab-clip-reveal hidden text-4xl font-extrabold leading-none xl:text-5xl lg:block"
                 >
                   0488 // DAM
                 </span>
@@ -266,7 +272,7 @@ const Home: React.FC = () => {
                     onPointerMove={createBtnMagnetic.onPointerMove}
                     onPointerLeave={createBtnMagnetic.onPointerLeave}
                     onClick={() => setIsModalOpen(true)}
-                    className="inline-flex min-h-[44px] items-center gap-2 border-2 border-slate-950 bg-amber-300 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[4px_4px_0px_#0f172a] transition-colors hover:bg-amber-400 active:translate-x-0.5 active:translate-y-0.5"
+                    className="inline-flex min-h-[44px] items-center gap-2 border-2 border-[#052e16] bg-green-400 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-green-950 shadow-[4px_4px_0px_#052e16] transition-colors hover:bg-green-300 active:translate-x-0.5 active:translate-y-0.5"
                   >
                     <IonIcon icon={addOutline} aria-hidden="true" />
                     Nueva incidencia
@@ -279,9 +285,13 @@ const Home: React.FC = () => {
                     onPointerLeave={syncBtnMagnetic.onPointerLeave}
                     onClick={handleTriggerSync}
                     disabled={isSyncing}
-                    className="inline-flex min-h-[44px] items-center gap-2 border-2 border-slate-950 bg-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[4px_4px_0px_#0f172a] transition-colors hover:bg-slate-100 disabled:opacity-60"
+                    className="inline-flex min-h-[44px] items-center gap-2 border-2 border-[#052e16] bg-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#052e16] shadow-[4px_4px_0px_#052e16] transition-colors hover:bg-green-50 disabled:opacity-60"
                   >
-                    <IonIcon icon={refreshOutline} aria-hidden="true" />
+                    <IonIcon
+                      icon={refreshOutline}
+                      aria-hidden="true"
+                      className={isSyncing ? 'smartlab-spin' : ''}
+                    />
                     Sincronizar
                   </button>
                 </div>
@@ -302,10 +312,10 @@ const Home: React.FC = () => {
             {/* Bloque 1: Bento Grid + CSS Subgrid (Secciones 1.2 y 1.4) */}
             <section aria-label="Resumen de métricas" className="mb-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-800">
+                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#052e16]">
                   Estado Operativo del Centro
                 </h2>
-                <span className="font-mono text-[11px] font-semibold uppercase text-slate-700">
+                <span className="font-mono text-[11px] font-semibold uppercase text-green-900">
                   Bento Subgrid // 3D Tilt
                 </span>
               </div>
@@ -315,12 +325,13 @@ const Home: React.FC = () => {
                   label="Total"
                   value={metrics.total}
                   icon={layersOutline}
-                  iconColorClass="text-blue-800"
-                  valueColorClass="text-slate-950"
-                  accentClass="bg-amber-50"
+                  iconColorClass="text-green-800"
+                  valueColorClass="text-[#052e16]"
+                  accentClass="bg-emerald-50"
                   spanClass="lg:col-span-4"
                   progressPercent={metrics.resolutionRate}
                   subtitle={`${metrics.resolutionRate}% resuelto`}
+                  staggerIndex={0}
                 />
                 <KpiCard
                   label="Pendientes"
@@ -330,6 +341,7 @@ const Home: React.FC = () => {
                   valueColorClass="text-amber-800"
                   spanClass="lg:col-span-3"
                   subtitle="Cola activa"
+                  staggerIndex={1}
                 />
                 <KpiCard
                   label="Críticas"
@@ -340,16 +352,19 @@ const Home: React.FC = () => {
                   accentClass="bg-red-50"
                   spanClass="lg:col-span-3"
                   subtitle="Prioridad alta"
+                  staggerIndex={2}
+                  pulseAlert={metrics.critical > 0}
                 />
                 <KpiCard
                   label="Resueltas"
                   value={metrics.resolved}
                   icon={checkmarkCircleOutline}
-                  iconColorClass="text-emerald-800"
-                  valueColorClass="text-emerald-800"
-                  accentClass="bg-emerald-50"
+                  iconColorClass="text-green-800"
+                  valueColorClass="text-green-800"
+                  accentClass="bg-green-100"
                   spanClass="lg:col-span-2"
                   subtitle="Cerradas"
+                  staggerIndex={3}
                 />
               </div>
             </section>
@@ -390,13 +405,13 @@ const Home: React.FC = () => {
             {/* Bloque 3: Listado adaptativo con @container y Skeleton Screen */}
             <section aria-label="Listado de incidencias">
               <div className="mb-2.5 flex flex-wrap items-center justify-between gap-1">
-                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-800">
+                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#052e16]">
                   Incidencias Registradas ({filteredIncidents.length})
                 </h2>
-                <span className="font-mono text-xs text-slate-700 sm:hidden">
+                <span className="font-mono text-xs text-green-900 sm:hidden">
                   Desliza para acciones
                 </span>
-                <span className="hidden font-mono text-xs text-slate-700 sm:inline">
+                <span className="hidden font-mono text-xs text-green-900 sm:inline">
                   Pulsa para ver detalle o desliza para acciones
                 </span>
               </div>
@@ -404,8 +419,8 @@ const Home: React.FC = () => {
               {isSyncing ? (
                 <IncidentSkeleton count={3} />
               ) : filteredIncidents.length === 0 ? (
-                <div className="border-2 border-dashed border-slate-950 bg-white p-8 text-center shadow-[4px_4px_0px_#0f172a]">
-                  <p className="text-sm font-bold text-slate-800">
+                <div className="border-2 border-dashed border-[#052e16] bg-white p-8 text-center shadow-[4px_4px_0px_#052e16]">
+                  <p className="text-sm font-bold text-[#052e16]">
                     No existen incidencias que coincidan con el filtro aplicado.
                   </p>
                 </div>
@@ -415,13 +430,14 @@ const Home: React.FC = () => {
                   lines="none"
                   className="space-y-3 bg-transparent pb-1.5 pr-1.5 pt-0"
                 >
-                  {filteredIncidents.map((incident) => (
+                  {filteredIncidents.map((incident, index) => (
                     <IncidentItem
                       key={incident.id}
                       incident={incident}
                       onToggleStatus={handleToggleStatus}
                       onDelete={handleDeleteIncident}
                       onSelect={handleSelectIncident}
+                      staggerIndex={index}
                     />
                   ))}
                 </IonList>
@@ -430,7 +446,7 @@ const Home: React.FC = () => {
           </div>
 
           {/* Pie anclado al final de 100dvh */}
-          <footer className="relative z-10 mt-auto border-t-2 border-slate-950 bg-slate-950 px-4 pb-24 pt-3 font-mono text-xs font-semibold text-amber-300 sm:px-6 sm:pb-4">
+          <footer className="relative z-10 mt-auto border-t-2 border-[#052e16] bg-[#052e16] px-4 pb-24 pt-3 font-mono text-xs font-semibold text-green-300 sm:px-6 sm:pb-4">
             <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 sm:pr-20">
               <span>SMARTLAB MONITOR // IONIC REACT + TAILWIND CSS</span>
               <span>WCAG 2.2 AA // 100DVH // LOCALSTORAGE</span>
@@ -486,7 +502,7 @@ const Home: React.FC = () => {
             >
               <IonItem
                 lines="none"
-                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+                className="border-2 border-[#052e16] bg-white shadow-[4px_4px_0px_#052e16]"
               >
                 <IonInput
                   label="Título de la incidencia *"
@@ -500,7 +516,7 @@ const Home: React.FC = () => {
 
               <IonItem
                 lines="none"
-                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+                className="border-2 border-[#052e16] bg-white shadow-[4px_4px_0px_#052e16]"
               >
                 <IonInput
                   label="Aula o Ubicación *"
@@ -514,7 +530,7 @@ const Home: React.FC = () => {
 
               <IonItem
                 lines="none"
-                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+                className="border-2 border-[#052e16] bg-white shadow-[4px_4px_0px_#052e16]"
               >
                 <IonSelect
                   label="Nivel de Prioridad"
@@ -532,7 +548,7 @@ const Home: React.FC = () => {
 
               <IonItem
                 lines="none"
-                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+                className="border-2 border-[#052e16] bg-white shadow-[4px_4px_0px_#052e16]"
               >
                 <IonTextarea
                   label="Descripción técnica"
@@ -548,7 +564,7 @@ const Home: React.FC = () => {
                 <IonButton
                   expand="block"
                   type="submit"
-                  className="min-h-[44px] border-2 border-slate-950 font-mono text-xs font-bold uppercase tracking-wider shadow-[4px_4px_0px_#0f172a]"
+                  className="min-h-[44px] border-2 border-[#052e16] font-mono text-xs font-bold uppercase tracking-wider shadow-[4px_4px_0px_#052e16]"
                 >
                   Guardar Incidencia
                 </IonButton>

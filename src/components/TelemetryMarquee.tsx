@@ -8,7 +8,7 @@ export interface TelemetryMarqueeProps {
 }
 
 /**
- * Marquesina cinética continua con transformación GPU translate3d.
+ * Marquesina cinética continua en paleta verde Neo-Brutalista con transformación GPU.
  */
 const TelemetryMarquee: React.FC<TelemetryMarqueeProps> = ({
   total,
@@ -20,21 +20,25 @@ const TelemetryMarquee: React.FC<TelemetryMarqueeProps> = ({
 
   return (
     <div
-      className="w-full select-none overflow-hidden border-y-2 border-slate-950 bg-slate-950 py-2 text-amber-300"
+      className="w-full select-none overflow-hidden border-y-2 border-[#052e16] bg-[#052e16] py-2 text-green-300"
       aria-label="Cinta de telemetría operativa"
     >
       <div className="smartlab-marquee-track font-mono text-xs font-bold uppercase tracking-widest">
         <div className="flex shrink-0 items-center gap-6 pr-6">
           <span>{segmentText}</span>
-          <span aria-hidden="true">//</span>
+          <span aria-hidden="true" className="text-green-400">
+            //
+          </span>
           <span aria-hidden="true">{segmentText}</span>
-          <span aria-hidden="true">//</span>
+          <span aria-hidden="true" className="text-green-400">
+            //
+          </span>
         </div>
         <div className="flex shrink-0 items-center gap-6 pr-6" aria-hidden="true">
           <span>{segmentText}</span>
-          <span>//</span>
+          <span className="text-green-400">//</span>
           <span>{segmentText}</span>
-          <span>//</span>
+          <span className="text-green-400">//</span>
         </div>
       </div>
     </div>

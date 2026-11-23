@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --ion-color-primary: #1d4ed8;
-  --ion-color-primary-rgb: 29, 78, 216;
+  --ion-color-primary: #15803d;
+  --ion-color-primary-rgb: 21, 128, 61;
   --ion-color-primary-contrast: #ffffff;
   --ion-color-primary-contrast-rgb: 255, 255, 255;
-  --ion-color-primary-shade: #1a45be;
-  --ion-color-primary-tint: #3460dc;
+  --ion-color-primary-shade: #166534;
+  --ion-color-primary-tint: #22c55e;
 
-  --ion-background-color: #f5f3ec;
+  --ion-background-color: #f0f7f2;
   --ion-font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
 }
 
@@ -18,12 +18,12 @@
   font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* Cabecera Neo-Brutalista en Shadow DOM */
+/* Cabecera Verde Neo-Brutalista en Shadow DOM */
 .smartlab-header-toolbar {
-  --background: #0f172a;
+  --background: #052e16;
   --color: #ffffff;
   --border-width: 0;
-  border-bottom: 2px solid #0f172a;
+  border-bottom: 2px solid #052e16;
 }
 
 /* Layout dinámico con unidades vh / svh / dvh (Sección 1.5) */
@@ -35,18 +35,43 @@
   flex-direction: column;
   position: relative;
   overflow-x: clip;
-  background-color: #f5f3ec;
+  background-color: #f0f7f2;
 }
 
 .smartlab-hero-stage {
   min-height: 20vh;
   min-height: 20svh;
+  position: relative;
+  overflow: hidden;
 }
 
 @media (min-width: 1024px) {
   .smartlab-hero-stage {
     min-height: 24vh;
     min-height: 24dvh;
+  }
+}
+
+/* Mesh Gradient verde animado en GPU (Sección 3.3) */
+.smartlab-hero-mesh {
+  position: absolute;
+  inset: -25%;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 18% 28%, oklch(90% 0.09 145 / 0.55) 0%, transparent 48%),
+    radial-gradient(circle at 82% 24%, oklch(86% 0.14 148 / 0.38) 0%, transparent 44%),
+    radial-gradient(circle at 52% 85%, oklch(93% 0.06 155 / 0.5) 0%, transparent 50%);
+  animation: smartlab-mesh-drift 16s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes smartlab-mesh-drift {
+  0% {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(2%, 2%, 0) scale(1.05);
   }
 }
 
@@ -68,14 +93,30 @@
   letter-spacing: -0.04em;
   line-height: 0.9;
   font-weight: 700;
-  color: #0f172a;
+  color: #052e16;
 }
 
 .smartlab-outlined-text {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   color: transparent;
-  -webkit-text-stroke: 2px #0f172a;
+  -webkit-text-stroke: 2px #052e16;
   user-select: none;
+}
+
+.smartlab-clip-reveal {
+  display: inline-block;
+  animation: smartlab-clip-reveal 700ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@keyframes smartlab-clip-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
 }
 
 .smartlab-reveal-mask {
@@ -85,7 +126,7 @@
 
 .smartlab-reveal-line {
   display: block;
-  animation: smartlab-line-reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: smartlab-line-reveal 620ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
 .smartlab-reveal-line--delay {
@@ -100,6 +141,148 @@
   to {
     opacity: 1;
     transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Animaciones GPU escalonadas con fill-mode backwards (sin bloquear JS transform) */
+.smartlab-card-enter {
+  animation: smartlab-card-enter 440ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--stagger-index, 0) * 75ms);
+}
+
+@keyframes smartlab-card-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.smartlab-item-enter {
+  animation: smartlab-item-enter 380ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(var(--stagger-index, 0) * 55ms);
+}
+
+@keyframes smartlab-item-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(-10px, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.smartlab-value-pop {
+  animation: smartlab-value-pop 340ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes smartlab-value-pop {
+  from {
+    opacity: 0.65;
+    transform: scale(1.14);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Indicador LED operativo con pulso GPU */
+.smartlab-pulse-indicator {
+  position: relative;
+  display: inline-flex;
+  width: 10px;
+  height: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.smartlab-pulse-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: #16a34a;
+  animation: smartlab-pulse-ring 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.smartlab-pulse-ring--alert {
+  background-color: #dc2626;
+}
+
+.smartlab-pulse-dot {
+  position: relative;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #15803d;
+  border: 1.5px solid #052e16;
+}
+
+.smartlab-pulse-dot--alert {
+  background-color: #dc2626;
+}
+
+@keyframes smartlab-pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  75%,
+  100% {
+    transform: scale(2.1);
+    opacity: 0;
+  }
+}
+
+/* Barra de progreso y brillo GPU */
+.smartlab-progress-fill {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  transform-origin: left center;
+  transform: scaleX(var(--progress-scale, 0));
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.smartlab-progress-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 100%
+  );
+  animation: smartlab-shimmer 2.4s ease-in-out infinite;
+}
+
+@keyframes smartlab-shimmer {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+.smartlab-spin {
+  animation: smartlab-spin 850ms linear infinite;
+}
+
+@keyframes smartlab-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -208,7 +391,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  border-top: 2px solid #e2e8f0;
+  border-top: 2px solid #bbf7d0;
   padding-top: 0.625rem;
 }
 
@@ -227,31 +410,31 @@
   }
 }
 
-/* Personalización Shadow DOM Neo-Brutalista con contraste WCAG 2.2 AA */
+/* Personalización Shadow DOM Verde Neo-Brutalista con contraste WCAG 2.2 AA/AAA */
 .incident-item {
   --padding-start: 16px;
   --inner-padding-end: 16px;
   --background: #ffffff;
-  --background-hover: #fffbeb;
+  --background-hover: #f0fdf4;
 }
 
 .smartlab-searchbar {
   --background: #ffffff;
   --border-radius: 0px;
   --box-shadow: none;
-  --color: #0f172a;
-  --placeholder-color: #334155;
-  --icon-color: #0f172a;
-  border: 2px solid #0f172a;
-  box-shadow: 4px 4px 0px #0f172a;
+  --color: #052e16;
+  --placeholder-color: #1e3a29;
+  --icon-color: #15803d;
+  border: 2px solid #052e16;
+  box-shadow: 4px 4px 0px #052e16;
   padding: 0;
   background: #ffffff;
 }
 
 .smartlab-segment {
-  --background: #e7e5dc;
-  border: 2px solid #0f172a;
-  box-shadow: 4px 4px 0px #0f172a;
+  --background: #dcfce7;
+  border: 2px solid #052e16;
+  box-shadow: 4px 4px 0px #052e16;
   border-radius: 0px;
   padding: 3px;
 }
@@ -261,9 +444,9 @@
   min-height: 44px;
   --padding-start: 6px;
   --padding-end: 6px;
-  --indicator-color: #facc15;
-  --color: #0f172a;
-  --color-checked: #0f172a;
+  --indicator-color: #4ade80;
+  --color: #052e16;
+  --color-checked: #052e16;
   --border-radius: 0px;
   text-transform: none;
   font-size: 0.75rem;
@@ -278,35 +461,36 @@
 
 .smartlab-chip-pending {
   --background: #fef08a;
-  --color: #0f172a;
-  border: 2px solid #0f172a;
+  --color: #052e16;
+  border: 2px solid #052e16;
   border-radius: 0px;
   pointer-events: none;
 }
 
 .smartlab-chip-resolved {
-  --background: #a7f3d0;
-  --color: #064e3b;
-  border: 2px solid #0f172a;
+  --background: #86efac;
+  --color: #052e16;
+  border: 2px solid #052e16;
   border-radius: 0px;
   pointer-events: none;
 }
 
 .smartlab-fab-btn {
-  --background: #facc15;
-  --background-activated: #eab308;
-  --background-hover: #fde047;
-  --color: #0f172a;
+  --background: #4ade80;
+  --background-activated: #22c55e;
+  --background-hover: #86efac;
+  --color: #052e16;
   --border-radius: 0px;
-  --box-shadow: 4px 4px 0px #0f172a;
-  border: 2px solid #0f172a;
+  --box-shadow: 4px 4px 0px #052e16;
+  border: 2px solid #052e16;
 }
 
 ion-toast {
-  --background: #0f172a;
-  --color: #fde047;
+  --background: #052e16;
+  --color: #86efac;
   --border-radius: 0px;
-  --box-shadow: 4px 4px 0px #facc15;
+  --box-shadow: 4px 4px 0px #4ade80;
+  border: 2px solid #4ade80;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-weight: 700;
 }
@@ -314,13 +498,25 @@ ion-toast {
 /* Accesibilidad vestibular y foco de alto contraste (Sección 7) */
 @media (prefers-reduced-motion: reduce) {
   .smartlab-marquee-track,
-  .smartlab-reveal-line {
+  .smartlab-reveal-line,
+  .smartlab-hero-mesh,
+  .smartlab-clip-reveal,
+  .smartlab-card-enter,
+  .smartlab-item-enter,
+  .smartlab-value-pop,
+  .smartlab-pulse-ring,
+  .smartlab-progress-shimmer,
+  .smartlab-spin {
     animation: none !important;
   }
 
+  .smartlab-progress-fill,
   .smartlab-tilt-card,
   .smartlab-tilt-card::after {
     transition: none !important;
+  }
+
+  .smartlab-tilt-card {
     transform: none !important;
   }
 
@@ -330,6 +526,6 @@ ion-toast {
 }
 
 :focus-visible {
-  outline: 3px solid #1d4ed8;
+  outline: 3px solid #15803d;
   outline-offset: 2px;
 }
