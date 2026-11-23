@@ -46,6 +46,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
         className="incident-item"
         button
         detail={false}
+        data-cursor="VER FICHA →"
         onClick={() => onSelect(incident.id)}
       >
         <div className="incident-card-container py-3.5">
@@ -92,6 +93,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
             <div className="incident-card-actions">
               <button
                 type="button"
+                data-cursor="CAMBIAR ESTADO"
                 className="inline-flex min-h-[44px] items-center px-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -117,6 +119,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
 
               <button
                 type="button"
+                data-cursor="ELIMINAR"
                 className="hidden min-h-[44px] min-w-[44px] items-center justify-center border-2 border-[#052e16] bg-white text-[#052e16] transition-colors hover:bg-red-200 hover:text-red-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-700 sm:inline-flex"
                 onClick={(e) => {
                   e.stopPropagation();

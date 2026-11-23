@@ -17,7 +17,7 @@ export interface KpiCardProps {
 }
 
 /**
- * Tarjeta KPI Verde Neo-Brutalista en Bento Grid / Subgrid con entrada escalonada y tilt 3D.
+ * Tarjeta KPI Verde Neo-Brutalista en Bento Grid / Subgrid con inclinación 3D reforzada.
  */
 const KpiCard: React.FC<KpiCardProps> = ({
   label,
@@ -32,7 +32,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
   staggerIndex = 0,
   pulseAlert = false,
 }) => {
-  const tilt = usePerspectiveTilt<HTMLElement>({ maxTilt: 6 });
+  const tilt = usePerspectiveTilt<HTMLElement>({ maxTilt: 10 });
 
   const normalizedProgress =
     typeof progressPercent === 'number'
@@ -44,10 +44,11 @@ const KpiCard: React.FC<KpiCardProps> = ({
       ref={tilt.ref}
       onPointerMove={tilt.onPointerMove}
       onPointerLeave={tilt.onPointerLeave}
+      data-cursor="INCLINAR 3D"
       style={{ '--stagger-index': staggerIndex } as React.CSSProperties}
       className={`smartlab-kpi-card smartlab-tilt-card smartlab-card-enter border-2 border-[#052e16] p-3.5 shadow-[4px_4px_0px_#052e16] sm:p-4 ${accentClass} ${spanClass}`}
     >
-      <div className="flex items-center justify-between gap-2 text-[#052e16]">
+      <div className="smartlab-tilt-depth flex items-center justify-between gap-2 text-[#052e16]">
         <span className="inline-flex min-w-0 items-center gap-1.5 font-mono text-xs font-bold uppercase tracking-wider">
           {pulseAlert && (
             <span className="smartlab-pulse-indicator" aria-hidden="true">
@@ -66,7 +67,7 @@ const KpiCard: React.FC<KpiCardProps> = ({
 
       <p
         key={value}
-        className={`smartlab-value-pop self-end font-mono text-3xl font-extrabold leading-none tabular-nums sm:text-4xl ${valueColorClass}`}
+        className={`smartlab-tilt-depth smartlab-value-pop self-end font-mono text-3xl font-extrabold leading-none tabular-nums sm:text-4xl ${valueColorClass}`}
       >
         {value}
       </p>

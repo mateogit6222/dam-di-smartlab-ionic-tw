@@ -45,10 +45,10 @@ const IncidentDetail: React.FC = () => {
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const cardTilt = usePerspectiveTilt<HTMLElement>({ maxTilt: 3 });
+  const cardTilt = usePerspectiveTilt<HTMLElement>({ maxTilt: 6 });
   const saveMagnetic = useMagneticControl<HTMLDivElement>({
-    strength: 0.22,
-    maxOffset: 6,
+    strength: 0.3,
+    maxOffset: 10,
   });
 
   useEffect(() => {
@@ -120,6 +120,7 @@ const IncidentDetail: React.FC = () => {
                   ref={cardTilt.ref}
                   onPointerMove={cardTilt.onPointerMove}
                   onPointerLeave={cardTilt.onPointerLeave}
+                  data-cursor="INCLINAR 3D"
                   style={{ '--stagger-index': 0 } as React.CSSProperties}
                   className="smartlab-tilt-card smartlab-card-enter relative overflow-hidden border-2 border-[#052e16] bg-white p-5 shadow-[6px_6px_0px_#052e16] sm:p-6"
                 >
@@ -185,6 +186,7 @@ const IncidentDetail: React.FC = () => {
                     <IonButton
                       type="button"
                       fill="outline"
+                      data-cursor="CAMBIAR ESTADO"
                       color={
                         incident.status === 'resuelta' ? 'warning' : 'success'
                       }
@@ -235,6 +237,7 @@ const IncidentDetail: React.FC = () => {
                       ref={saveMagnetic.ref}
                       onPointerMove={saveMagnetic.onPointerMove}
                       onPointerLeave={saveMagnetic.onPointerLeave}
+                      data-cursor="GUARDAR"
                       className="w-full sm:w-auto"
                     >
                       <IonButton
