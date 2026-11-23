@@ -1,9 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   IonBadge,
   IonButton,
   IonButtons,
-  IonChip,
   IonContent,
   IonFab,
   IonFabButton,
@@ -11,9 +11,6 @@ import {
   IonIcon,
   IonInput,
   IonItem,
-  IonItemOption,
-  IonItemOptions,
-  IonItemSliding,
   IonLabel,
   IonList,
   IonModal,
@@ -38,49 +35,18 @@ import {
   closeOutline,
   layersOutline,
   timeOutline,
-  trashOutline,
 } from 'ionicons/icons';
-import { FilterOption, Incident, IncidentPriority } from '../types/incident';
-
-const INITIAL_INCIDENTS: Incident[] = [
-  {
-    id: 'INC-101',
-    title: 'Fallo de enlace en Switch Rack B',
-    location: 'Aula 204 - Redes',
-    description: 'Pérdida intermitente de paquetes en puertos Gigabit 12 al 16.',
-    priority: 'alta',
-    status: 'pendiente',
-    createdAt: '09:15',
-  },
-  {
-    id: 'INC-102',
-    title: 'Actualización de imágenes Docker',
-    location: 'Laboratorio DAM 2',
-    description: 'Desplegar imagen base Node 22 Alpine en estaciones de trabajo.',
-    priority: 'media',
-    status: 'pendiente',
-    createdAt: '10:30',
-  },
-  {
-    id: 'INC-103',
-    title: 'Calibración de proyector láser',
-    location: 'Aula Magna',
-    description: 'Ajuste trapezoidal y verificación de entrada HDMI.',
-    priority: 'baja',
-    status: 'resuelta',
-    createdAt: 'Ayer',
-  },
-];
-
-const PRIORITY_BADGE_STYLES: Record<IncidentPriority, string> = {
-  alta: 'bg-red-100 text-red-800 border-red-200',
-  media: 'bg-amber-100 text-amber-800 border-amber-200',
-  baja: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-};
+import IncidentItem from '../components/IncidentItem';
+import KpiCard from '../components/KpiCard';
+import { useIncidents } from '../context/IncidentsContext';
+import { FilterOption, IncidentPriority } from '../types/incident';
 
 const Home: React.FC = () => {
-  // Estado principal de datos y controles UI
-  const [incidents, setIncidents] = useState<Incident[]>(INITIAL_INCIDENTS);
+  const history = useHistory();
+  const { incidents, addIncident, toggleIncidentStatus, deleteIncident } =
+    useIncidents();
+
+  // Estado UI de búsqueda, filtros, modal y feedback
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<FilterOption>('todas');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
@@ -98,8 +64,12 @@ const Home: React.FC = () => {
   // Cálculo memoizado de indicadores KPI (CE 3.e: optimización de renderizado)
   const metrics = useMemo(() => {
     const total = incidents.length;
-    const pending = incidents.filter((item) => item.status === 'pendiente').length;
-    const resolved = incidents.filter((item) => item.status === 'resuelta').length;
+    const pending = incidents.filter(
+      (item) => item.status === 'pendiente'
+    ).length;
+    const resolved = incidents.filter(
+      (item) => item.status === 'resuelta'
+    ).length;
     const critical = incidents.filter(
       (item) => item.status === 'pendiente' && item.priority === 'alta'
     ).length;
@@ -110,7 +80,8 @@ const Home: React.FC = () => {
   const filteredIncidents = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
     return incidents.filter((item) => {
-      const matchesStatus = activeFilter === 'todas' || item.status === activeFilter;
+      const matchesStatus =
+        activeFilter === 'todas' || item.status === activeFilter;
       const matchesQuery =
         normalizedQuery === '' ||
         item.title.toLowerCase().includes(normalizedQuery) ||
@@ -123,29 +94,28 @@ const Home: React.FC = () => {
   // Gesto nativo Pull-to-Refresh
   const handleRefresh = (event: CustomEvent<RefresherEventDetail>) => {
     setTimeout(() => {
-      setToastMessage('Estado sincronizado con el servidor');
+      setToastMessage('Estado sincronizado con almacenamiento local');
       event.detail.complete();
     }, 700);
   };
 
-  // Alternar estado pendiente / resuelta desde IonItemSliding
+  // Alternar estado pendiente / resuelta
   const handleToggleStatus = async (id: string) => {
-    setIncidents((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, status: item.status === 'pendiente' ? 'resuelta' : 'pendiente' }
-          : item
-      )
-    );
+    toggleIncidentStatus(id);
     await listRef.current?.closeSlidingItems();
     setToastMessage('Estado de incidencia actualizado');
   };
 
   // Eliminación de elemento
   const handleDeleteIncident = async (id: string) => {
-    setIncidents((prev) => prev.filter((item) => item.id !== id));
+    deleteIncident(id);
     await listRef.current?.closeSlidingItems();
     setToastMessage(`Incidencia ${id} eliminada`);
+  };
+
+  // Navegación a ficha técnica de detalle
+  const handleSelectIncident = (id: string) => {
+    history.push(`/incident/${id}`);
   };
 
   // Creación de nueva incidencia desde IonModal
@@ -156,20 +126,13 @@ const Home: React.FC = () => {
       return;
     }
 
-    const newIncident: Incident = {
-      id: `INC-${Math.floor(104 + Math.random() * 895)}`,
-      title: title.trim(),
-      location: location.trim(),
-      description: description.trim() || 'Sin observaciones adicionales.',
+    const newIncident = addIncident({
+      title,
+      location,
+      description,
       priority,
-      status: 'pendiente',
-      createdAt: new Date().toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
-    };
+    });
 
-    setIncidents((prev) => [newIncident, ...prev]);
     setTitle('');
     setLocation('');
     setDescription('');
@@ -183,13 +146,18 @@ const Home: React.FC = () => {
       {/* Cabecera móvil con contador dinámico */}
       <IonHeader className="ion-no-border">
         <IonToolbar color="primary">
-          <IonTitle className="font-semibold tracking-tight">SmartLab Monitor</IonTitle>
+          <IonTitle className="font-semibold tracking-tight">
+            SmartLab Monitor
+          </IonTitle>
           <IonButtons slot="end">
             <div className="mr-3 flex items-center gap-2">
-              <span className="hidden text-xs font-medium text-blue-100 sm:inline">
+              <span className="hidden text-xs font-medium text-white sm:inline">
                 Pendientes:
               </span>
-              <IonBadge color="light" className="px-2.5 py-1 font-bold text-blue-700">
+              <IonBadge
+                color="light"
+                className="px-2.5 py-1 font-bold text-blue-700"
+              >
                 {metrics.pending}
               </IonBadge>
             </div>
@@ -211,46 +179,38 @@ const Home: React.FC = () => {
         <div className="mx-auto max-w-5xl px-4 pb-24 pt-4 sm:px-6">
           {/* Bloque 1: Panel de métricas KPI con Tailwind Grid */}
           <section aria-label="Resumen de métricas" className="mb-6">
-            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-500">
+            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-600">
               Estado Operativo del Centro
             </h2>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-medium">Total</span>
-                  <IonIcon icon={layersOutline} className="text-lg text-blue-600" />
-                </div>
-                <p className="mt-2 text-2xl font-bold text-slate-900">{metrics.total}</p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-medium">Pendientes</span>
-                  <IonIcon icon={timeOutline} className="text-lg text-amber-500" />
-                </div>
-                <p className="mt-2 text-2xl font-bold text-amber-600">{metrics.pending}</p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-medium">Críticas</span>
-                  <IonIcon icon={alertCircleOutline} className="text-lg text-red-600" />
-                </div>
-                <p className="mt-2 text-2xl font-bold text-red-600">{metrics.critical}</p>
-              </div>
-
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500">
-                  <span className="text-xs font-medium">Resueltas</span>
-                  <IonIcon
-                    icon={checkmarkCircleOutline}
-                    className="text-lg text-emerald-600"
-                  />
-                </div>
-                <p className="mt-2 text-2xl font-bold text-emerald-600">
-                  {metrics.resolved}
-                </p>
-              </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+              <KpiCard
+                label="Total"
+                value={metrics.total}
+                icon={layersOutline}
+                iconColorClass="text-blue-700"
+                valueColorClass="text-slate-900"
+              />
+              <KpiCard
+                label="Pendientes"
+                value={metrics.pending}
+                icon={timeOutline}
+                iconColorClass="text-amber-600"
+                valueColorClass="text-amber-700"
+              />
+              <KpiCard
+                label="Críticas"
+                value={metrics.critical}
+                icon={alertCircleOutline}
+                iconColorClass="text-red-700"
+                valueColorClass="text-red-700"
+              />
+              <KpiCard
+                label="Resueltas"
+                value={metrics.resolved}
+                icon={checkmarkCircleOutline}
+                iconColorClass="text-emerald-700"
+                valueColorClass="text-emerald-700"
+              />
             </div>
           </section>
 
@@ -261,12 +221,13 @@ const Home: React.FC = () => {
               onIonInput={(e) => setSearchQuery(e.detail.value ?? '')}
               placeholder="Buscar por código, título o aula..."
               debounce={200}
-              className="px-0"
+              className="smartlab-searchbar"
               aria-label="Buscar incidencias"
             />
 
             <IonSegment
               value={activeFilter}
+              className="smartlab-segment"
               onIonChange={(e) =>
                 setActiveFilter((e.detail.value as FilterOption) ?? 'todas')
               }
@@ -285,18 +246,18 @@ const Home: React.FC = () => {
 
           {/* Bloque 3: Listado interactivo con gestos laterales (IonItemSliding) */}
           <section aria-label="Listado de incidencias">
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-1">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
                 Incidencias Registradas ({filteredIncidents.length})
               </h2>
-              <span className="text-xs text-slate-400">
-                Desliza un elemento para acciones
+              <span className="text-xs text-slate-600">
+                Pulsa para ver detalle o desliza para acciones
               </span>
             </div>
 
             {filteredIncidents.length === 0 ? (
               <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
-                <p className="text-sm font-medium text-slate-600">
+                <p className="text-sm font-medium text-slate-700">
                   No existen incidencias que coincidan con el filtro aplicado.
                 </p>
               </div>
@@ -307,77 +268,13 @@ const Home: React.FC = () => {
                 className="space-y-3 bg-transparent p-0"
               >
                 {filteredIncidents.map((incident) => (
-                  <IonItemSliding
+                  <IncidentItem
                     key={incident.id}
-                    className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
-                  >
-                    <IonItem className="incident-item">
-                      <div className="w-full py-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs font-semibold text-blue-600">
-                              {incident.id}
-                            </span>
-                            <span
-                              className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
-                                PRIORITY_BADGE_STYLES[incident.priority]
-                              }`}
-                            >
-                              {incident.priority}
-                            </span>
-                          </div>
-                          <span className="text-xs text-slate-400">
-                            {incident.createdAt}
-                          </span>
-                        </div>
-
-                        <h3
-                          className={`mt-1.5 text-base font-semibold ${
-                            incident.status === 'resuelta'
-                              ? 'text-slate-400 line-through'
-                              : 'text-slate-900'
-                          }`}
-                        >
-                          {incident.title}
-                        </h3>
-
-                        <p className="mt-1 text-sm text-slate-600">
-                          {incident.description}
-                        </p>
-
-                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2">
-                          <span className="text-xs font-medium text-slate-500">
-                            Ubicación:{' '}
-                            <strong className="text-slate-700">{incident.location}</strong>
-                          </span>
-
-                          <IonChip
-                            color={incident.status === 'resuelta' ? 'success' : 'warning'}
-                            className="m-0 h-6 text-xs font-semibold"
-                            onClick={() => handleToggleStatus(incident.id)}
-                          >
-                            {incident.status === 'resuelta' ? 'Resuelta' : 'Pendiente'}
-                          </IonChip>
-                        </div>
-                      </div>
-                    </IonItem>
-
-                    {/* Opciones ocultas tras deslizamiento horizontal */}
-                    <IonItemOptions side="end">
-                      <IonItemOption
-                        color="success"
-                        onClick={() => handleToggleStatus(incident.id)}
-                      >
-                        <IonIcon slot="icon-only" icon={checkmarkCircleOutline} />
-                      </IonItemOption>
-                      <IonItemOption
-                        color="danger"
-                        onClick={() => handleDeleteIncident(incident.id)}
-                      >
-                        <IonIcon slot="icon-only" icon={trashOutline} />
-                      </IonItemOption>
-                    </IonItemOptions>
-                  </IonItemSliding>
+                    incident={incident}
+                    onToggleStatus={handleToggleStatus}
+                    onDelete={handleDeleteIncident}
+                    onSelect={handleSelectIncident}
+                  />
                 ))}
               </IonList>
             )}
@@ -390,7 +287,7 @@ const Home: React.FC = () => {
             onClick={() => setIsModalOpen(true)}
             aria-label="Registrar nueva incidencia"
           >
-            <IonIcon icon={addOutline} />
+            <IonIcon icon={addOutline} aria-hidden="true" />
           </IonFabButton>
         </IonFab>
 
@@ -403,16 +300,20 @@ const Home: React.FC = () => {
                 <IonButton
                   onClick={() => setIsModalOpen(false)}
                   aria-label="Cerrar formulario"
+                  className="min-h-[44px] min-w-[44px]"
                 >
-                  <IonIcon icon={closeOutline} />
+                  <IonIcon icon={closeOutline} aria-hidden="true" />
                 </IonButton>
               </IonButtons>
             </IonToolbar>
           </IonHeader>
 
           <IonContent className="ion-padding">
-            <form onSubmit={handleCreateIncident} className="space-y-4">
-              <IonItem className="rounded-lg border border-slate-200">
+            <form
+              onSubmit={handleCreateIncident}
+              className="mx-auto max-w-lg space-y-4"
+            >
+              <IonItem lines="none" className="rounded-lg border border-slate-200">
                 <IonInput
                   label="Título de la incidencia *"
                   labelPlacement="stacked"
@@ -423,7 +324,7 @@ const Home: React.FC = () => {
                 />
               </IonItem>
 
-              <IonItem className="rounded-lg border border-slate-200">
+              <IonItem lines="none" className="rounded-lg border border-slate-200">
                 <IonInput
                   label="Aula o Ubicación *"
                   labelPlacement="stacked"
@@ -434,12 +335,14 @@ const Home: React.FC = () => {
                 />
               </IonItem>
 
-              <IonItem className="rounded-lg border border-slate-200">
+              <IonItem lines="none" className="rounded-lg border border-slate-200">
                 <IonSelect
                   label="Nivel de Prioridad"
                   labelPlacement="stacked"
                   value={priority}
-                  onIonChange={(e) => setPriority(e.detail.value as IncidentPriority)}
+                  onIonChange={(e) =>
+                    setPriority(e.detail.value as IncidentPriority)
+                  }
                 >
                   <IonSelectOption value="alta">Alta (Crítica)</IonSelectOption>
                   <IonSelectOption value="media">Media (Operativa)</IonSelectOption>
@@ -447,7 +350,7 @@ const Home: React.FC = () => {
                 </IonSelect>
               </IonItem>
 
-              <IonItem className="rounded-lg border border-slate-200">
+              <IonItem lines="none" className="rounded-lg border border-slate-200">
                 <IonTextarea
                   label="Descripción técnica"
                   labelPlacement="stacked"
@@ -459,7 +362,11 @@ const Home: React.FC = () => {
               </IonItem>
 
               <div className="pt-2">
-                <IonButton expand="block" type="submit" className="font-semibold">
+                <IonButton
+                  expand="block"
+                  type="submit"
+                  className="min-h-[44px] font-semibold"
+                >
                   Guardar Incidencia
                 </IonButton>
               </div>
