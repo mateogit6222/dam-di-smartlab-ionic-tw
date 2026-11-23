@@ -26,11 +26,11 @@
   border-bottom: 2px solid #052e16;
 }
 
-/* Layout dinámico con unidades vh / svh / dvh (Sección 1.5) */
+/* Layout dinámico de dos etapas con unidades vh / dvh (Sección 1.5) */
 .smartlab-viewport-shell,
 .smartlab-detail-shell {
-  min-height: calc(100vh - 56px);
-  min-height: calc(100dvh - 56px);
+  min-height: calc(100vh - 58px);
+  min-height: calc(100dvh - 58px);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -39,17 +39,77 @@
 }
 
 .smartlab-hero-stage {
-  min-height: 20vh;
-  min-height: 20svh;
+  min-height: calc(100vh - 58px);
+  min-height: calc(100dvh - 58px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   position: relative;
   overflow: hidden;
 }
 
-@media (min-width: 1024px) {
-  .smartlab-hero-stage {
-    min-height: 24vh;
-    min-height: 24dvh;
-  }
+.smartlab-dashboard-stage {
+  min-height: calc(100vh - 58px);
+  min-height: calc(100dvh - 58px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Barra de progreso y paralaje hardware-accelerated (Secciones 4.1 y 4.3) */
+.smartlab-scroll-progress {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 4px;
+  width: 100%;
+  background: #052e16;
+}
+
+.smartlab-scroll-progress-fill {
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  transform: scaleX(var(--scroll-progress, 0));
+  background: #4ade80;
+  will-change: transform;
+}
+
+.smartlab-parallax-slow {
+  transform: translate3d(0, calc(var(--scroll-y, 0) * 0.22px), 0);
+  will-change: transform;
+}
+
+.smartlab-parallax-reverse {
+  transform: translate3d(0, calc(var(--scroll-y, 0) * -0.12px), 0);
+  will-change: transform;
+}
+
+/* Barra de filtros Sticky dentro del flujo de IonContent */
+.smartlab-sticky-controls {
+  position: sticky;
+  top: 8px;
+  z-index: 25;
+  background: rgba(240, 247, 242, 0.94);
+  backdrop-filter: blur(8px);
+  padding-top: 4px;
+  padding-bottom: 8px;
+}
+
+/* Tira horizontal Scroll Snap por aulas (Sección 4.4) */
+.smartlab-hscroll-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 4px 8px 2px;
+  scrollbar-width: thin;
+  scrollbar-color: #052e16 #dcfce7;
+}
+
+.smartlab-hscroll-card {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
 }
 
 /* Mesh Gradient verde animado en GPU (Sección 3.3) */
@@ -89,9 +149,9 @@
 /* Tipografía Neo-Brutalista fluida, negative tracking y tight leading (Secciones 2.1, 2.3, 2.5) */
 .smartlab-display-title {
   font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-  font-size: clamp(2rem, 6vw, 4.5rem);
-  letter-spacing: -0.04em;
-  line-height: 0.9;
+  font-size: clamp(2.4rem, 8.5vw, 6.5rem);
+  letter-spacing: -0.045em;
+  line-height: 0.88;
   font-weight: 700;
   color: #052e16;
 }
@@ -189,6 +249,20 @@
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+.smartlab-bounce-y {
+  animation: smartlab-bounce-y 1.6s ease-in-out infinite;
+}
+
+@keyframes smartlab-bounce-y {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, 6px, 0);
   }
 }
 
@@ -344,7 +418,7 @@
   }
 }
 
-/* Inclinación 3D reactiva con reflejo especular (Sección 5.3) */
+/* Inclinación 3D reactiva con reflejo especular y relieve Z (Sección 5.3) */
 .smartlab-tilt-card {
   transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1),
     box-shadow 180ms ease;
@@ -359,15 +433,31 @@
   opacity: var(--glare-opacity, 0);
   background: radial-gradient(
     circle at var(--glare-x, 50%) var(--glare-y, 50%),
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0) 60%
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(74, 222, 128, 0.34) 36%,
+    rgba(74, 222, 128, 0) 68%
   );
   transition: opacity 180ms ease;
 }
 
+.smartlab-tilt-depth {
+  transform: translateZ(16px);
+}
+
+/* Cursor Contextual (Sección 5.2) */
+.smartlab-cursor-follower {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+  will-change: transform;
+}
+
 @media (hover: none) and (pointer: coarse) {
-  .smartlab-tilt-card::after {
-    display: none;
+  .smartlab-tilt-card::after,
+  .smartlab-cursor-follower {
+    display: none !important;
   }
 }
 
@@ -506,7 +596,8 @@ ion-toast {
   .smartlab-value-pop,
   .smartlab-pulse-ring,
   .smartlab-progress-shimmer,
-  .smartlab-spin {
+  .smartlab-spin,
+  .smartlab-bounce-y {
     animation: none !important;
   }
 
@@ -516,12 +607,18 @@ ion-toast {
     transition: none !important;
   }
 
-  .smartlab-tilt-card {
+  .smartlab-tilt-card,
+  .smartlab-parallax-slow,
+  .smartlab-parallax-reverse {
     transform: none !important;
   }
 
   .smartlab-tilt-card::after {
     opacity: 0 !important;
+  }
+
+  .smartlab-cursor-follower {
+    display: none !important;
   }
 }
 

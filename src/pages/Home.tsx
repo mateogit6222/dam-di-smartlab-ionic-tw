@@ -27,10 +27,12 @@ import {
   IonToast,
   IonToolbar,
   RefresherEventDetail,
+  ScrollDetail,
 } from '@ionic/react';
 import {
   addOutline,
   alertCircleOutline,
+  arrowDownOutline,
   checkmarkCircleOutline,
   closeOutline,
   layersOutline,
@@ -63,28 +65,40 @@ const Home: React.FC = () => {
   const [description, setDescription] = useState<string>('');
   const [priority, setPriority] = useState<IncidentPriority>('media');
 
-  // Referencia a IonList y temporizador de sincronización
+  // Referencias para listado, scroll 100dvh, parallax y temporizador
+  const contentRef = useRef<HTMLIonContentElement | null>(null);
+  const shellRef = useRef<HTMLDivElement | null>(null);
+  const dashboardRef = useRef<HTMLDivElement | null>(null);
+  const scrollElementRef = useRef<HTMLElement | null>(null);
+  const scrollRafRef = useRef<number | null>(null);
   const listRef = useRef<HTMLIonListElement | null>(null);
   const syncTimerRef = useRef<number | null>(null);
 
-  // Controles magnéticos restringidos a ratón (Sección 5.1)
+  // Controles magnéticos reforzados restringidos a ratón (Sección 5.1)
   const createBtnMagnetic = useMagneticControl<HTMLButtonElement>({
-    strength: 0.25,
-    maxOffset: 8,
+    strength: 0.38,
+    maxOffset: 14,
   });
   const syncBtnMagnetic = useMagneticControl<HTMLButtonElement>({
-    strength: 0.25,
-    maxOffset: 8,
+    strength: 0.38,
+    maxOffset: 14,
+  });
+  const exploreBtnMagnetic = useMagneticControl<HTMLButtonElement>({
+    strength: 0.38,
+    maxOffset: 14,
   });
   const fabMagnetic = useMagneticControl<HTMLDivElement>({
-    strength: 0.28,
-    maxOffset: 10,
+    strength: 0.34,
+    maxOffset: 12,
   });
 
   useEffect(() => {
     return () => {
       if (syncTimerRef.current !== null) {
         window.clearTimeout(syncTimerRef.current);
+      }
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
       }
     };
   }, []);
@@ -105,6 +119,18 @@ const Home: React.FC = () => {
     return { total, pending, resolved, critical, resolutionRate };
   }, [incidents]);
 
+  // Resumen por aulas para la tira interactiva Horizontal Scroll Snap (Sección 4.4)
+  const locationSummaries = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of incidents) {
+      counts.set(item.location, (counts.get(item.location) ?? 0) + 1);
+    }
+    return Array.from(counts.entries()).map(([loc, count]) => ({
+      location: loc,
+      count,
+    }));
+  }, [incidents]);
+
   // Filtrado combinado por estado y búsqueda textual
   const filteredIncidents = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -119,6 +145,41 @@ const Home: React.FC = () => {
       return matchesStatus && matchesQuery;
     });
   }, [incidents, activeFilter, searchQuery]);
+
+  // Scroll Parallax + Progress Bar sin re-renderizados React (Secciones 4.1 y 4.3)
+  const handleContentScroll = (event: CustomEvent<ScrollDetail>) => {
+    const scrollTop = event.detail.scrollTop;
+
+    if (scrollRafRef.current !== null) {
+      window.cancelAnimationFrame(scrollRafRef.current);
+    }
+
+    scrollRafRef.current = window.requestAnimationFrame(async () => {
+      const shell = shellRef.current;
+      if (!shell) {
+        return;
+      }
+
+      if (!scrollElementRef.current && contentRef.current) {
+        scrollElementRef.current = await contentRef.current.getScrollElement();
+      }
+
+      const scrollEl = scrollElementRef.current;
+      const maxScroll = scrollEl
+        ? Math.max(1, scrollEl.scrollHeight - scrollEl.clientHeight)
+        : 1;
+      const progress = Math.max(0, Math.min(1, scrollTop / maxScroll));
+
+      shell.style.setProperty('--scroll-y', scrollTop.toFixed(1));
+      shell.style.setProperty('--scroll-progress', progress.toFixed(4));
+    });
+  };
+
+  // Desplazamiento suave desde el Hero 100dvh hacia la Etapa 2
+  const handleScrollToDashboard = () => {
+    const targetY = dashboardRef.current?.offsetTop ?? 720;
+    void contentRef.current?.scrollToPoint(0, Math.max(0, targetY - 6), 550);
+  };
 
   // Sincronización con Skeleton Screen (Sección 5.4)
   const runSyncCycle = (onFinish?: () => void) => {
@@ -144,6 +205,12 @@ const Home: React.FC = () => {
       return;
     }
     runSyncCycle();
+  };
+
+  const handleToggleLocationFilter = (loc: string) => {
+    setSearchQuery((prev) =>
+      prev.trim().toLowerCase() === loc.toLowerCase() ? '' : loc
+    );
   };
 
   // Alternar estado pendiente / resuelta
@@ -209,7 +276,12 @@ const Home: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent fullscreen>
+      <IonContent
+        ref={contentRef}
+        fullscreen
+        scrollEvents={true}
+        onIonScroll={handleContentScroll}
+      >
         {/* Control táctil Pull-to-Refresh */}
         <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
           <IonRefresherContent
@@ -220,27 +292,40 @@ const Home: React.FC = () => {
         </IonRefresher>
 
         {/* Shell de altura dinámica 100dvh + textura procedural SVG grain */}
-        <div className="smartlab-viewport-shell">
+        <div ref={shellRef} className="smartlab-viewport-shell">
           <div className="smartlab-grain-layer" aria-hidden="true" />
 
-          {/* Hero Verde Neo-Brutalista con Mesh Gradient GPU y Split-Text Reveal */}
+          {/* Barra de progreso vinculada al scroll (Sección 4.3) */}
+          <div className="smartlab-scroll-progress" aria-hidden="true">
+            <div className="smartlab-scroll-progress-fill" />
+          </div>
+
+          {/* ETAPA 1: Hero a pantalla completa 100vh / 100dvh */}
           <section
-            aria-label="Cabecera operativa"
-            className="smartlab-hero-stage relative z-10 border-b-2 border-[#052e16] bg-[#f7fcf9] px-4 py-5 sm:px-6 lg:py-6"
+            aria-label="Cabecera operativa a pantalla completa"
+            className="smartlab-hero-stage relative z-10 border-b-2 border-[#052e16] bg-[#f7fcf9]"
           >
             <div className="smartlab-hero-mesh" aria-hidden="true" />
 
-            <div className="relative z-10 mx-auto flex max-w-6xl flex-col justify-between gap-4 lg:flex-row lg:items-end">
-              <div className="min-w-0">
-                <p className="inline-flex items-center gap-2 border-2 border-[#052e16] bg-green-300 px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#052e16] shadow-[2px_2px_0px_#052e16]">
-                  <span className="smartlab-pulse-indicator" aria-hidden="true">
-                    <span className="smartlab-pulse-ring" />
-                    <span className="smartlab-pulse-dot" />
-                  </span>
-                  SISTEMA ACTIVO // MÓDULO 0488
-                </p>
+            {/* Franja superior del viewport 100dvh */}
+            <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-2 px-4 pt-5 sm:px-6 sm:pt-7">
+              <p className="inline-flex items-center gap-2 border-2 border-[#052e16] bg-green-300 px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#052e16] shadow-[2px_2px_0px_#052e16]">
+                <span className="smartlab-pulse-indicator" aria-hidden="true">
+                  <span className="smartlab-pulse-ring" />
+                  <span className="smartlab-pulse-dot" />
+                </span>
+                SISTEMA ACTIVO // 100DVH VIEWPORT
+              </p>
 
-                <h1 className="smartlab-display-title mt-3">
+              <span className="hidden font-mono text-[11px] font-bold uppercase tracking-wider text-[#052e16] md:inline">
+                INTERACCIONES: CURSOR · MAGNETIC · 3D TILT · PARALLAX
+              </span>
+            </div>
+
+            {/* Bloque central del Hero con capas Parallax diferenciales */}
+            <div className="relative z-10 mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-6 px-4 py-6 sm:px-6 lg:grid-cols-12">
+              <div className="min-w-0 lg:col-span-7">
+                <h1 className="smartlab-display-title">
                   <span className="smartlab-reveal-mask">
                     <span className="smartlab-reveal-line">SMARTLAB</span>
                   </span>
@@ -251,26 +336,19 @@ const Home: React.FC = () => {
                   </span>
                 </h1>
 
-                <p className="mt-2.5 max-w-xl text-sm font-medium text-slate-900">
+                <p className="mt-4 max-w-xl text-sm font-medium text-slate-900 sm:text-base">
                   Control operativo de incidencias en aulas y laboratorios con
-                  persistencia local, tarjetas adaptativas y telemetría en vivo.
+                  escena inicial 100dvh, paralaje en GPU, cursor contextual,
+                  tarjetas adaptativas y persistencia local.
                 </p>
-              </div>
 
-              <div className="flex flex-col items-start gap-3 lg:items-end">
-                <span
-                  aria-hidden="true"
-                  className="smartlab-outlined-text smartlab-clip-reveal hidden text-4xl font-extrabold leading-none xl:text-5xl lg:block"
-                >
-                  0488 // DAM
-                </span>
-
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="mt-6 flex flex-wrap items-center gap-3">
                   <button
                     type="button"
                     ref={createBtnMagnetic.ref}
                     onPointerMove={createBtnMagnetic.onPointerMove}
                     onPointerLeave={createBtnMagnetic.onPointerLeave}
+                    data-cursor="CREAR +"
                     onClick={() => setIsModalOpen(true)}
                     className="inline-flex min-h-[44px] items-center gap-2 border-2 border-[#052e16] bg-green-400 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-green-950 shadow-[4px_4px_0px_#052e16] transition-colors hover:bg-green-300 active:translate-x-0.5 active:translate-y-0.5"
                   >
@@ -283,6 +361,7 @@ const Home: React.FC = () => {
                     ref={syncBtnMagnetic.ref}
                     onPointerMove={syncBtnMagnetic.onPointerMove}
                     onPointerLeave={syncBtnMagnetic.onPointerLeave}
+                    data-cursor="SINCRONIZAR"
                     onClick={handleTriggerSync}
                     disabled={isSyncing}
                     className="inline-flex min-h-[44px] items-center gap-2 border-2 border-[#052e16] bg-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-[#052e16] shadow-[4px_4px_0px_#052e16] transition-colors hover:bg-green-50 disabled:opacity-60"
@@ -294,21 +373,114 @@ const Home: React.FC = () => {
                     />
                     Sincronizar
                   </button>
+
+                  <button
+                    type="button"
+                    ref={exploreBtnMagnetic.ref}
+                    onPointerMove={exploreBtnMagnetic.onPointerMove}
+                    onPointerLeave={exploreBtnMagnetic.onPointerLeave}
+                    data-cursor="BAJAR ↓"
+                    onClick={handleScrollToDashboard}
+                    className="inline-flex min-h-[44px] items-center gap-2 border-2 border-[#052e16] bg-[#052e16] px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-green-300 shadow-[4px_4px_0px_#4ade80] transition-colors hover:bg-green-950"
+                  >
+                    Explorar panel
+                    <IonIcon icon={arrowDownOutline} aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-start gap-4 lg:col-span-5 lg:items-end">
+                <span
+                  aria-hidden="true"
+                  className="smartlab-outlined-text smartlab-clip-reveal smartlab-parallax-slow hidden text-5xl font-extrabold leading-none xl:text-6xl lg:block"
+                >
+                  0488 // DAM
+                </span>
+
+                <div className="smartlab-parallax-reverse w-full max-w-md border-2 border-[#052e16] bg-white/95 p-4 shadow-[6px_6px_0px_#052e16]">
+                  <div className="mb-3 flex items-center justify-between border-b-2 border-[#052e16] pb-2">
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-[#052e16]">
+                      Telemetría en vivo
+                    </span>
+                    <span className="font-mono text-xs font-bold text-green-800">
+                      {metrics.resolutionRate}% OK
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2 text-center">
+                    <div className="border-2 border-[#052e16] bg-emerald-50 p-2">
+                      <span className="block font-mono text-[10px] font-bold uppercase text-slate-700">
+                        Tot
+                      </span>
+                      <span className="font-mono text-lg font-extrabold text-[#052e16]">
+                        {metrics.total}
+                      </span>
+                    </div>
+                    <div className="border-2 border-[#052e16] bg-white p-2">
+                      <span className="block font-mono text-[10px] font-bold uppercase text-slate-700">
+                        Pend
+                      </span>
+                      <span className="font-mono text-lg font-extrabold text-amber-800">
+                        {metrics.pending}
+                      </span>
+                    </div>
+                    <div className="border-2 border-[#052e16] bg-red-50 p-2">
+                      <span className="block font-mono text-[10px] font-bold uppercase text-slate-700">
+                        Crít
+                      </span>
+                      <span className="font-mono text-lg font-extrabold text-red-800">
+                        {metrics.critical}
+                      </span>
+                    </div>
+                    <div className="border-2 border-[#052e16] bg-green-100 p-2">
+                      <span className="block font-mono text-[10px] font-bold uppercase text-slate-700">
+                        Res
+                      </span>
+                      <span className="font-mono text-lg font-extrabold text-green-800">
+                        {metrics.resolved}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Base anclada al borde inferior de 100dvh */}
+            <div className="relative z-10 w-full">
+              <div className="mx-auto flex max-w-6xl items-center justify-between px-4 pb-2 sm:px-6">
+                <button
+                  type="button"
+                  data-cursor="BAJAR ↓"
+                  onClick={handleScrollToDashboard}
+                  className="inline-flex min-h-[44px] items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[#052e16] hover:text-green-800"
+                >
+                  <IonIcon
+                    icon={arrowDownOutline}
+                    aria-hidden="true"
+                    className="smartlab-bounce-y text-base"
+                  />
+                  DESLIZA HACIA ABAJO (100DVH)
+                </button>
+                <span className="hidden font-mono text-[11px] font-bold uppercase text-green-900 sm:inline">
+                  ETAPA 01 / 02
+                </span>
+              </div>
+
+              {/* Marquesina cinética continua (Sección 2.4) */}
+              <TelemetryMarquee
+                total={metrics.total}
+                pending={metrics.pending}
+                critical={metrics.critical}
+                resolved={metrics.resolved}
+              />
+            </div>
           </section>
 
-          {/* Marquesina cinética continua (Sección 2.4) */}
-          <TelemetryMarquee
-            total={metrics.total}
-            pending={metrics.pending}
-            critical={metrics.critical}
-            resolved={metrics.resolved}
-          />
-
-          {/* Contenedor principal centrado */}
-          <div className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-8 pt-5 sm:px-6 sm:pb-12">
+          {/* ETAPA 2: Panel Operativo completo 100vh / 100dvh */}
+          <div
+            id="dashboard-panel"
+            ref={dashboardRef}
+            className="smartlab-dashboard-stage relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-8 pt-6 sm:px-6 sm:pb-12"
+          >
             {/* Bloque 1: Bento Grid + CSS Subgrid (Secciones 1.2 y 1.4) */}
             <section aria-label="Resumen de métricas" className="mb-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -316,7 +488,7 @@ const Home: React.FC = () => {
                   Estado Operativo del Centro
                 </h2>
                 <span className="font-mono text-[11px] font-semibold uppercase text-green-900">
-                  Bento Subgrid // 3D Tilt
+                  Bento Subgrid // 3D Tilt 10°
                 </span>
               </div>
 
@@ -369,10 +541,57 @@ const Home: React.FC = () => {
               </div>
             </section>
 
-            {/* Bloque 2: Barra de búsqueda y filtro segmentado */}
+            {/* Bloque 1.5: Tira Interactiva Horizontal Scroll Snap por Aulas (Sección 4.4) */}
+            <section aria-label="Filtro rápido por aulas" className="mb-5">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#052e16]">
+                  Aulas Monitorizadas (Scroll Snap)
+                </h2>
+                <span className="font-mono text-[11px] font-semibold uppercase text-green-900">
+                  Pulsa para filtrar
+                </span>
+              </div>
+
+              <div className="smartlab-hscroll-strip">
+                <button
+                  type="button"
+                  data-cursor="FILTRAR AULA"
+                  onClick={() => setSearchQuery('')}
+                  className={`smartlab-hscroll-card min-h-[44px] border-2 border-[#052e16] px-3.5 py-2 font-mono text-xs font-bold uppercase shadow-[3px_3px_0px_#052e16] transition-colors ${
+                    searchQuery.trim() === ''
+                      ? 'bg-green-400 text-green-950'
+                      : 'bg-white text-[#052e16] hover:bg-green-50'
+                  }`}
+                >
+                  Todas las aulas ({metrics.total})
+                </button>
+
+                {locationSummaries.map(({ location: loc, count }) => {
+                  const isActive =
+                    searchQuery.trim().toLowerCase() === loc.toLowerCase();
+                  return (
+                    <button
+                      key={loc}
+                      type="button"
+                      data-cursor="FILTRAR AULA"
+                      onClick={() => handleToggleLocationFilter(loc)}
+                      className={`smartlab-hscroll-card min-h-[44px] border-2 border-[#052e16] px-3.5 py-2 font-mono text-xs font-bold shadow-[3px_3px_0px_#052e16] transition-colors ${
+                        isActive
+                          ? 'bg-green-400 text-green-950'
+                          : 'bg-white text-[#052e16] hover:bg-green-50'
+                      }`}
+                    >
+                      {loc} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Bloque 2: Barra de búsqueda y filtro segmentado Sticky */}
             <section
               aria-label="Filtros de búsqueda"
-              className="mb-5 grid grid-cols-1 gap-3 pb-1 pr-1 lg:grid-cols-12 lg:items-center"
+              className="smartlab-sticky-controls mb-5 grid grid-cols-1 gap-3 pr-1 lg:grid-cols-12 lg:items-center"
             >
               <IonSearchbar
                 value={searchQuery}
@@ -403,7 +622,7 @@ const Home: React.FC = () => {
             </section>
 
             {/* Bloque 3: Listado adaptativo con @container y Skeleton Screen */}
-            <section aria-label="Listado de incidencias">
+            <section aria-label="Listado de incidencias" className="flex-1">
               <div className="mb-2.5 flex flex-wrap items-center justify-between gap-1">
                 <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-[#052e16]">
                   Incidencias Registradas ({filteredIncidents.length})
@@ -465,6 +684,7 @@ const Home: React.FC = () => {
             ref={fabMagnetic.ref}
             onPointerMove={fabMagnetic.onPointerMove}
             onPointerLeave={fabMagnetic.onPointerLeave}
+            data-cursor="CREAR +"
           >
             <IonFabButton
               className="smartlab-fab-btn"
