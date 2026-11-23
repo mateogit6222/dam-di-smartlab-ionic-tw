@@ -298,7 +298,7 @@ const Home: React.FC = () => {
           />
 
           {/* Contenedor principal centrado */}
-          <div className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-24 pt-5 sm:px-6">
+          <div className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-8 pt-5 sm:px-6 sm:pb-12">
             {/* Bloque 1: Bento Grid + CSS Subgrid (Secciones 1.2 y 1.4) */}
             <section aria-label="Resumen de métricas" className="mb-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -430,8 +430,8 @@ const Home: React.FC = () => {
           </div>
 
           {/* Pie anclado al final de 100dvh */}
-          <footer className="relative z-10 mt-auto border-t-2 border-slate-950 bg-slate-950 px-4 py-3 font-mono text-xs font-semibold text-amber-300 sm:px-6">
-            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
+          <footer className="relative z-10 mt-auto border-t-2 border-slate-950 bg-slate-950 px-4 pb-24 pt-3 font-mono text-xs font-semibold text-amber-300 sm:px-6 sm:pb-4">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 sm:pr-20">
               <span>SMARTLAB MONITOR // IONIC REACT + TAILWIND CSS</span>
               <span>WCAG 2.2 AA // 100DVH // LOCALSTORAGE</span>
             </div>

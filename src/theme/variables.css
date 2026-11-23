@@ -302,6 +302,15 @@
   border: 2px solid #0f172a;
 }
 
+ion-toast {
+  --background: #0f172a;
+  --color: #fde047;
+  --border-radius: 0px;
+  --box-shadow: 4px 4px 0px #facc15;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 700;
+}
+
 /* Accesibilidad vestibular y foco de alto contraste (Sección 7) */
 @media (prefers-reduced-motion: reduce) {
   .smartlab-marquee-track,
