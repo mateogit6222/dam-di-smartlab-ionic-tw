@@ -23,7 +23,7 @@ export interface IncidentItemProps {
 }
 
 /**
- * Fila de incidencia con gestos táctiles (IonItemSliding) y acciones accesibles.
+ * Fila de incidencia Neo-Brutalista adaptativa mediante CSS Container Queries.
  */
 const IncidentItem: React.FC<IncidentItemProps> = ({
   incident,
@@ -34,54 +34,58 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
   const isResolved = incident.status === 'resuelta';
 
   return (
-    <IonItemSliding className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow duration-150 hover:border-slate-300 hover:shadow-md">
+    <IonItemSliding className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a] transition-transform duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5">
       <IonItem
         className="incident-item"
         button
         detail={false}
         onClick={() => onSelect(incident.id)}
       >
-        <div className="w-full min-w-0 py-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-mono text-xs font-semibold text-blue-700">
-                {incident.id}
-              </span>
-              <span
-                className={`rounded-full border px-2.5 py-0.5 text-xs font-semibold capitalize ${
-                  PRIORITY_BADGE_STYLES[incident.priority]
+        <div className="incident-card-container py-3.5">
+          <div className="incident-card-body">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-xs font-bold text-blue-800">
+                    {incident.id}
+                  </span>
+                  <span
+                    className={`border-2 px-2 py-0.5 font-mono text-xs font-bold uppercase ${
+                      PRIORITY_BADGE_STYLES[incident.priority]
+                    }`}
+                  >
+                    {incident.priority}
+                  </span>
+                </div>
+                <span className="font-mono text-xs font-semibold text-slate-700">
+                  {incident.createdAt}
+                </span>
+              </div>
+
+              <h3
+                className={`mt-2 break-words text-base font-bold leading-snug ${
+                  isResolved
+                    ? 'text-slate-600 line-through'
+                    : 'text-slate-950'
                 }`}
               >
-                {incident.priority}
-              </span>
+                {incident.title}
+              </h3>
+
+              <p className="mt-1 break-words text-sm text-slate-800">
+                {incident.description}
+              </p>
+
+              <p className="mt-2.5 font-mono text-xs font-semibold text-slate-700">
+                UBICACIÓN:{' '}
+                <strong className="text-slate-950">{incident.location}</strong>
+              </p>
             </div>
-            <span className="text-xs font-medium text-slate-600">
-              {incident.createdAt}
-            </span>
-          </div>
 
-          <h3
-            className={`mt-1.5 break-words text-base font-semibold ${
-              isResolved ? 'text-slate-600 line-through' : 'text-slate-900'
-            }`}
-          >
-            {incident.title}
-          </h3>
-
-          <p className="mt-1 break-words text-sm text-slate-700">
-            {incident.description}
-          </p>
-
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2">
-            <span className="min-w-0 break-words text-xs font-medium text-slate-600">
-              Ubicación:{' '}
-              <strong className="text-slate-800">{incident.location}</strong>
-            </span>
-
-            <div className="flex items-center gap-1">
+            <div className="incident-card-actions">
               <button
                 type="button"
-                className="inline-flex min-h-[44px] items-center rounded-lg px-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600"
+                className="inline-flex min-h-[44px] items-center px-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   onToggleStatus(incident.id);
@@ -94,8 +98,10 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
               >
                 <IonChip
                   color={isResolved ? 'success' : 'warning'}
-                  className={`m-0 h-7 text-xs font-semibold ${
-                    isResolved ? 'smartlab-chip-resolved' : 'smartlab-chip-pending'
+                  className={`m-0 h-8 font-mono text-xs font-bold uppercase ${
+                    isResolved
+                      ? 'smartlab-chip-resolved'
+                      : 'smartlab-chip-pending'
                   }`}
                 >
                   {isResolved ? 'Resuelta' : 'Pendiente'}
@@ -104,7 +110,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
 
               <button
                 type="button"
-                className="hidden min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 sm:inline-flex"
+                className="hidden min-h-[44px] min-w-[44px] items-center justify-center border-2 border-slate-950 bg-white text-slate-950 transition-colors hover:bg-red-200 hover:text-red-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-700 sm:inline-flex"
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete(incident.id);
@@ -121,7 +127,7 @@ const IncidentItem: React.FC<IncidentItemProps> = ({
               <IonIcon
                 icon={chevronForwardOutline}
                 aria-hidden="true"
-                className="ml-0.5 text-base text-slate-500"
+                className="ml-0.5 text-base text-slate-950"
               />
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import {
   IonBadge,
@@ -34,11 +34,15 @@ import {
   checkmarkCircleOutline,
   closeOutline,
   layersOutline,
+  refreshOutline,
   timeOutline,
 } from 'ionicons/icons';
 import IncidentItem from '../components/IncidentItem';
+import IncidentSkeleton from '../components/IncidentSkeleton';
 import KpiCard from '../components/KpiCard';
+import TelemetryMarquee from '../components/TelemetryMarquee';
 import { useIncidents } from '../context/IncidentsContext';
+import { useMagneticControl } from '../hooks/useMagneticControl';
 import { FilterOption, IncidentPriority } from '../types/incident';
 
 const Home: React.FC = () => {
@@ -46,10 +50,11 @@ const Home: React.FC = () => {
   const { incidents, addIncident, toggleIncidentStatus, deleteIncident } =
     useIncidents();
 
-  // Estado UI de búsqueda, filtros, modal y feedback
+  // Estado UI de búsqueda, filtros, sincronización skeleton, modal y feedback
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [activeFilter, setActiveFilter] = useState<FilterOption>('todas');
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Estado controlado del formulario modal
@@ -58,10 +63,33 @@ const Home: React.FC = () => {
   const [description, setDescription] = useState<string>('');
   const [priority, setPriority] = useState<IncidentPriority>('media');
 
-  // Referencia a IonList para cerrar elementos deslizados programáticamente
+  // Referencia a IonList y temporizador de sincronización
   const listRef = useRef<HTMLIonListElement | null>(null);
+  const syncTimerRef = useRef<number | null>(null);
 
-  // Cálculo memoizado de indicadores KPI (CE 3.e: optimización de renderizado)
+  // Controles magnéticos restringidos a ratón (Sección 5.1)
+  const createBtnMagnetic = useMagneticControl<HTMLButtonElement>({
+    strength: 0.25,
+    maxOffset: 8,
+  });
+  const syncBtnMagnetic = useMagneticControl<HTMLButtonElement>({
+    strength: 0.25,
+    maxOffset: 8,
+  });
+  const fabMagnetic = useMagneticControl<HTMLDivElement>({
+    strength: 0.28,
+    maxOffset: 10,
+  });
+
+  useEffect(() => {
+    return () => {
+      if (syncTimerRef.current !== null) {
+        window.clearTimeout(syncTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Cálculo memoizado de indicadores KPI (CE 3.e)
   const metrics = useMemo(() => {
     const total = incidents.length;
     const pending = incidents.filter(
@@ -73,7 +101,8 @@ const Home: React.FC = () => {
     const critical = incidents.filter(
       (item) => item.status === 'pendiente' && item.priority === 'alta'
     ).length;
-    return { total, pending, resolved, critical };
+    const resolutionRate = total > 0 ? Math.round((resolved / total) * 100) : 0;
+    return { total, pending, resolved, critical, resolutionRate };
   }, [incidents]);
 
   // Filtrado combinado por estado y búsqueda textual
@@ -91,12 +120,30 @@ const Home: React.FC = () => {
     });
   }, [incidents, activeFilter, searchQuery]);
 
-  // Gesto nativo Pull-to-Refresh
-  const handleRefresh = (event: CustomEvent<RefresherEventDetail>) => {
-    setTimeout(() => {
+  // Sincronización con Skeleton Screen (Sección 5.4)
+  const runSyncCycle = (onFinish?: () => void) => {
+    if (syncTimerRef.current !== null) {
+      window.clearTimeout(syncTimerRef.current);
+    }
+    setIsSyncing(true);
+    syncTimerRef.current = window.setTimeout(() => {
+      setIsSyncing(false);
       setToastMessage('Estado sincronizado con almacenamiento local');
+      onFinish?.();
+    }, 650);
+  };
+
+  const handleRefresh = (event: CustomEvent<RefresherEventDetail>) => {
+    runSyncCycle(() => {
       event.detail.complete();
-    }, 700);
+    });
+  };
+
+  const handleTriggerSync = () => {
+    if (isSyncing) {
+      return;
+    }
+    runSyncCycle();
   };
 
   // Alternar estado pendiente / resuelta
@@ -143,21 +190,18 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
-      {/* Cabecera móvil con contador dinámico */}
+      {/* Cabecera móvil/desktop Neo-Brutalista */}
       <IonHeader className="ion-no-border">
-        <IonToolbar color="primary">
-          <IonTitle className="font-semibold tracking-tight">
-            SmartLab Monitor
+        <IonToolbar className="smartlab-header-toolbar">
+          <IonTitle className="font-mono text-sm font-bold uppercase tracking-wider sm:text-base">
+            SmartLab Monitor // 0488
           </IonTitle>
           <IonButtons slot="end">
             <div className="mr-3 flex items-center gap-2">
-              <span className="hidden text-xs font-medium text-white sm:inline">
+              <span className="hidden font-mono text-xs font-bold uppercase text-amber-300 sm:inline">
                 Pendientes:
               </span>
-              <IonBadge
-                color="light"
-                className="px-2.5 py-1 font-bold text-blue-700"
-              >
+              <IonBadge className="border-2 border-slate-950 bg-amber-300 px-2.5 py-1 font-mono text-xs font-extrabold text-slate-950">
                 {metrics.pending}
               </IonBadge>
             </div>
@@ -165,7 +209,7 @@ const Home: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent fullscreen className="bg-slate-50">
+      <IonContent fullscreen>
         {/* Control táctil Pull-to-Refresh */}
         <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
           <IonRefresherContent
@@ -175,138 +219,259 @@ const Home: React.FC = () => {
           />
         </IonRefresher>
 
-        {/* Contenedor principal responsivo centrado en escritorio */}
-        <div className="mx-auto max-w-5xl px-4 pb-24 pt-4 sm:px-6">
-          {/* Bloque 1: Panel de métricas KPI con Tailwind Grid */}
-          <section aria-label="Resumen de métricas" className="mb-6">
-            <h2 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-600">
-              Estado Operativo del Centro
-            </h2>
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
-              <KpiCard
-                label="Total"
-                value={metrics.total}
-                icon={layersOutline}
-                iconColorClass="text-blue-700"
-                valueColorClass="text-slate-900"
-              />
-              <KpiCard
-                label="Pendientes"
-                value={metrics.pending}
-                icon={timeOutline}
-                iconColorClass="text-amber-600"
-                valueColorClass="text-amber-700"
-              />
-              <KpiCard
-                label="Críticas"
-                value={metrics.critical}
-                icon={alertCircleOutline}
-                iconColorClass="text-red-700"
-                valueColorClass="text-red-700"
-              />
-              <KpiCard
-                label="Resueltas"
-                value={metrics.resolved}
-                icon={checkmarkCircleOutline}
-                iconColorClass="text-emerald-700"
-                valueColorClass="text-emerald-700"
-              />
-            </div>
-          </section>
+        {/* Shell de altura dinámica 100dvh + textura procedural SVG grain */}
+        <div className="smartlab-viewport-shell">
+          <div className="smartlab-grain-layer" aria-hidden="true" />
 
-          {/* Bloque 2: Barra de búsqueda y filtro segmentado */}
+          {/* Hero Neo-Brutalista con tipografía fluida y Split-Text Reveal */}
           <section
-            aria-label="Filtros de búsqueda"
-            className="mb-5 grid grid-cols-1 gap-3 lg:grid-cols-12 lg:items-center"
+            aria-label="Cabecera operativa"
+            className="smartlab-hero-stage relative z-10 border-b-2 border-slate-950 bg-[#fffdf7] px-4 py-5 sm:px-6 lg:py-6"
           >
-            <IonSearchbar
-              value={searchQuery}
-              onIonInput={(e) => setSearchQuery(e.detail.value ?? '')}
-              placeholder="Buscar por código, título o aula..."
-              debounce={200}
-              className="smartlab-searchbar lg:col-span-6"
-              aria-label="Buscar incidencias"
-            />
+            <div className="mx-auto flex max-w-6xl flex-col justify-between gap-4 lg:flex-row lg:items-end">
+              <div className="min-w-0">
+                <p className="inline-block border-2 border-slate-950 bg-amber-300 px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-950 shadow-[2px_2px_0px_#0f172a]">
+                  MÓDULO 0488 // 2.º DAM NEBRIJA
+                </p>
 
-            <IonSegment
-              value={activeFilter}
-              className="smartlab-segment lg:col-span-6"
-              onIonChange={(e) =>
-                setActiveFilter((e.detail.value as FilterOption) ?? 'todas')
-              }
-            >
-              <IonSegmentButton value="todas">
-                <IonLabel>Todas ({metrics.total})</IonLabel>
-              </IonSegmentButton>
-              <IonSegmentButton value="pendiente">
-                <IonLabel>Pendientes ({metrics.pending})</IonLabel>
-              </IonSegmentButton>
-              <IonSegmentButton value="resuelta">
-                <IonLabel>Resueltas ({metrics.resolved})</IonLabel>
-              </IonSegmentButton>
-            </IonSegment>
-          </section>
+                <h1 className="smartlab-display-title mt-3">
+                  <span className="smartlab-reveal-mask">
+                    <span className="smartlab-reveal-line">SMARTLAB</span>
+                  </span>
+                  <span className="smartlab-reveal-mask">
+                    <span className="smartlab-reveal-line smartlab-reveal-line--delay">
+                      MONITOR
+                    </span>
+                  </span>
+                </h1>
 
-          {/* Bloque 3: Listado interactivo con gestos laterales (IonItemSliding) */}
-          <section aria-label="Listado de incidencias">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-1">
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                Incidencias Registradas ({filteredIncidents.length})
-              </h2>
-              <span className="text-xs text-slate-600 sm:hidden">
-                Desliza para acciones
-              </span>
-              <span className="hidden text-xs text-slate-600 sm:inline">
-                Pulsa para ver detalle o desliza para acciones
-              </span>
-            </div>
-
-            {filteredIncidents.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-slate-300 bg-white p-8 text-center">
-                <p className="text-sm font-medium text-slate-700">
-                  No existen incidencias que coincidan con el filtro aplicado.
+                <p className="mt-2.5 max-w-xl text-sm font-medium text-slate-800">
+                  Control operativo de incidencias en aulas y laboratorios con
+                  persistencia local, tarjetas adaptativas y telemetría en vivo.
                 </p>
               </div>
-            ) : (
-              <IonList
-                ref={listRef}
-                lines="none"
-                className="space-y-3 bg-transparent p-0"
-              >
-                {filteredIncidents.map((incident) => (
-                  <IncidentItem
-                    key={incident.id}
-                    incident={incident}
-                    onToggleStatus={handleToggleStatus}
-                    onDelete={handleDeleteIncident}
-                    onSelect={handleSelectIncident}
-                  />
-                ))}
-              </IonList>
-            )}
+
+              <div className="flex flex-col items-start gap-3 lg:items-end">
+                <span
+                  aria-hidden="true"
+                  className="smartlab-outlined-text hidden text-4xl font-extrabold leading-none xl:text-5xl lg:block"
+                >
+                  0488 // DAM
+                </span>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    ref={createBtnMagnetic.ref}
+                    onPointerMove={createBtnMagnetic.onPointerMove}
+                    onPointerLeave={createBtnMagnetic.onPointerLeave}
+                    onClick={() => setIsModalOpen(true)}
+                    className="inline-flex min-h-[44px] items-center gap-2 border-2 border-slate-950 bg-amber-300 px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[4px_4px_0px_#0f172a] transition-colors hover:bg-amber-400 active:translate-x-0.5 active:translate-y-0.5"
+                  >
+                    <IonIcon icon={addOutline} aria-hidden="true" />
+                    Nueva incidencia
+                  </button>
+
+                  <button
+                    type="button"
+                    ref={syncBtnMagnetic.ref}
+                    onPointerMove={syncBtnMagnetic.onPointerMove}
+                    onPointerLeave={syncBtnMagnetic.onPointerLeave}
+                    onClick={handleTriggerSync}
+                    disabled={isSyncing}
+                    className="inline-flex min-h-[44px] items-center gap-2 border-2 border-slate-950 bg-white px-4 py-2 font-mono text-xs font-bold uppercase tracking-wider text-slate-950 shadow-[4px_4px_0px_#0f172a] transition-colors hover:bg-slate-100 disabled:opacity-60"
+                  >
+                    <IonIcon icon={refreshOutline} aria-hidden="true" />
+                    Sincronizar
+                  </button>
+                </div>
+              </div>
+            </div>
           </section>
+
+          {/* Marquesina cinética continua (Sección 2.4) */}
+          <TelemetryMarquee
+            total={metrics.total}
+            pending={metrics.pending}
+            critical={metrics.critical}
+            resolved={metrics.resolved}
+          />
+
+          {/* Contenedor principal centrado */}
+          <div className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 pb-8 pt-5 sm:px-6 sm:pb-12">
+            {/* Bloque 1: Bento Grid + CSS Subgrid (Secciones 1.2 y 1.4) */}
+            <section aria-label="Resumen de métricas" className="mb-6">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-800">
+                  Estado Operativo del Centro
+                </h2>
+                <span className="font-mono text-[11px] font-semibold uppercase text-slate-700">
+                  Bento Subgrid // 3D Tilt
+                </span>
+              </div>
+
+              <div className="smartlab-bento-grid pb-1 pr-1">
+                <KpiCard
+                  label="Total"
+                  value={metrics.total}
+                  icon={layersOutline}
+                  iconColorClass="text-blue-800"
+                  valueColorClass="text-slate-950"
+                  accentClass="bg-amber-50"
+                  spanClass="lg:col-span-4"
+                  progressPercent={metrics.resolutionRate}
+                  subtitle={`${metrics.resolutionRate}% resuelto`}
+                />
+                <KpiCard
+                  label="Pendientes"
+                  value={metrics.pending}
+                  icon={timeOutline}
+                  iconColorClass="text-amber-700"
+                  valueColorClass="text-amber-800"
+                  spanClass="lg:col-span-3"
+                  subtitle="Cola activa"
+                />
+                <KpiCard
+                  label="Críticas"
+                  value={metrics.critical}
+                  icon={alertCircleOutline}
+                  iconColorClass="text-red-800"
+                  valueColorClass="text-red-800"
+                  accentClass="bg-red-50"
+                  spanClass="lg:col-span-3"
+                  subtitle="Prioridad alta"
+                />
+                <KpiCard
+                  label="Resueltas"
+                  value={metrics.resolved}
+                  icon={checkmarkCircleOutline}
+                  iconColorClass="text-emerald-800"
+                  valueColorClass="text-emerald-800"
+                  accentClass="bg-emerald-50"
+                  spanClass="lg:col-span-2"
+                  subtitle="Cerradas"
+                />
+              </div>
+            </section>
+
+            {/* Bloque 2: Barra de búsqueda y filtro segmentado */}
+            <section
+              aria-label="Filtros de búsqueda"
+              className="mb-5 grid grid-cols-1 gap-3 pb-1 pr-1 lg:grid-cols-12 lg:items-center"
+            >
+              <IonSearchbar
+                value={searchQuery}
+                onIonInput={(e) => setSearchQuery(e.detail.value ?? '')}
+                placeholder="Buscar por código, título o aula..."
+                debounce={200}
+                className="smartlab-searchbar lg:col-span-6"
+                aria-label="Buscar incidencias"
+              />
+
+              <IonSegment
+                value={activeFilter}
+                className="smartlab-segment lg:col-span-6"
+                onIonChange={(e) =>
+                  setActiveFilter((e.detail.value as FilterOption) ?? 'todas')
+                }
+              >
+                <IonSegmentButton value="todas">
+                  <IonLabel>Todas ({metrics.total})</IonLabel>
+                </IonSegmentButton>
+                <IonSegmentButton value="pendiente">
+                  <IonLabel>Pendientes ({metrics.pending})</IonLabel>
+                </IonSegmentButton>
+                <IonSegmentButton value="resuelta">
+                  <IonLabel>Resueltas ({metrics.resolved})</IonLabel>
+                </IonSegmentButton>
+              </IonSegment>
+            </section>
+
+            {/* Bloque 3: Listado adaptativo con @container y Skeleton Screen */}
+            <section aria-label="Listado de incidencias">
+              <div className="mb-2.5 flex flex-wrap items-center justify-between gap-1">
+                <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-slate-800">
+                  Incidencias Registradas ({filteredIncidents.length})
+                </h2>
+                <span className="font-mono text-xs text-slate-700 sm:hidden">
+                  Desliza para acciones
+                </span>
+                <span className="hidden font-mono text-xs text-slate-700 sm:inline">
+                  Pulsa para ver detalle o desliza para acciones
+                </span>
+              </div>
+
+              {isSyncing ? (
+                <IncidentSkeleton count={3} />
+              ) : filteredIncidents.length === 0 ? (
+                <div className="border-2 border-dashed border-slate-950 bg-white p-8 text-center shadow-[4px_4px_0px_#0f172a]">
+                  <p className="text-sm font-bold text-slate-800">
+                    No existen incidencias que coincidan con el filtro aplicado.
+                  </p>
+                </div>
+              ) : (
+                <IonList
+                  ref={listRef}
+                  lines="none"
+                  className="space-y-3 bg-transparent pb-1.5 pr-1.5 pt-0"
+                >
+                  {filteredIncidents.map((incident) => (
+                    <IncidentItem
+                      key={incident.id}
+                      incident={incident}
+                      onToggleStatus={handleToggleStatus}
+                      onDelete={handleDeleteIncident}
+                      onSelect={handleSelectIncident}
+                    />
+                  ))}
+                </IonList>
+              )}
+            </section>
+          </div>
+
+          {/* Pie anclado al final de 100dvh */}
+          <footer className="relative z-10 mt-auto border-t-2 border-slate-950 bg-slate-950 px-4 pb-24 pt-3 font-mono text-xs font-semibold text-amber-300 sm:px-6 sm:pb-4">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 sm:pr-20">
+              <span>SMARTLAB MONITOR // IONIC REACT + TAILWIND CSS</span>
+              <span>WCAG 2.2 AA // 100DVH // LOCALSTORAGE</span>
+            </div>
+          </footer>
         </div>
 
-        {/* Botón de acción flotante (FAB) accesible (área >= 48x48px) */}
-        <IonFab slot="fixed" vertical="bottom" horizontal="end" className="mb-3 mr-3">
-          <IonFabButton
-            onClick={() => setIsModalOpen(true)}
-            aria-label="Registrar nueva incidencia"
+        {/* Botón de acción flotante (FAB) magnético y accesible */}
+        <IonFab
+          slot="fixed"
+          vertical="bottom"
+          horizontal="end"
+          className="mb-3 mr-3"
+        >
+          <div
+            ref={fabMagnetic.ref}
+            onPointerMove={fabMagnetic.onPointerMove}
+            onPointerLeave={fabMagnetic.onPointerLeave}
           >
-            <IonIcon icon={addOutline} aria-hidden="true" />
-          </IonFabButton>
+            <IonFabButton
+              className="smartlab-fab-btn"
+              onClick={() => setIsModalOpen(true)}
+              aria-label="Registrar nueva incidencia"
+            >
+              <IonIcon icon={addOutline} aria-hidden="true" />
+            </IonFabButton>
+          </div>
         </IonFab>
 
         {/* Modal de alta de nueva incidencia */}
         <IonModal isOpen={isModalOpen} onDidDismiss={() => setIsModalOpen(false)}>
           <IonHeader>
-            <IonToolbar>
-              <IonTitle>Nueva Incidencia</IonTitle>
+            <IonToolbar className="smartlab-header-toolbar">
+              <IonTitle className="font-mono text-sm font-bold uppercase tracking-wider">
+                Nueva Incidencia
+              </IonTitle>
               <IonButtons slot="end">
                 <IonButton
                   onClick={() => setIsModalOpen(false)}
                   aria-label="Cerrar formulario"
-                  className="min-h-[44px] min-w-[44px]"
+                  className="min-h-[44px] min-w-[44px] text-white"
                 >
                   <IonIcon icon={closeOutline} aria-hidden="true" />
                 </IonButton>
@@ -317,9 +482,12 @@ const Home: React.FC = () => {
           <IonContent className="ion-padding">
             <form
               onSubmit={handleCreateIncident}
-              className="mx-auto max-w-lg space-y-4"
+              className="mx-auto max-w-lg space-y-4 pt-2"
             >
-              <IonItem lines="none" className="rounded-lg border border-slate-200">
+              <IonItem
+                lines="none"
+                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+              >
                 <IonInput
                   label="Título de la incidencia *"
                   labelPlacement="stacked"
@@ -330,7 +498,10 @@ const Home: React.FC = () => {
                 />
               </IonItem>
 
-              <IonItem lines="none" className="rounded-lg border border-slate-200">
+              <IonItem
+                lines="none"
+                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+              >
                 <IonInput
                   label="Aula o Ubicación *"
                   labelPlacement="stacked"
@@ -341,7 +512,10 @@ const Home: React.FC = () => {
                 />
               </IonItem>
 
-              <IonItem lines="none" className="rounded-lg border border-slate-200">
+              <IonItem
+                lines="none"
+                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+              >
                 <IonSelect
                   label="Nivel de Prioridad"
                   labelPlacement="stacked"
@@ -356,7 +530,10 @@ const Home: React.FC = () => {
                 </IonSelect>
               </IonItem>
 
-              <IonItem lines="none" className="rounded-lg border border-slate-200">
+              <IonItem
+                lines="none"
+                className="border-2 border-slate-950 bg-white shadow-[4px_4px_0px_#0f172a]"
+              >
                 <IonTextarea
                   label="Descripción técnica"
                   labelPlacement="stacked"
@@ -371,7 +548,7 @@ const Home: React.FC = () => {
                 <IonButton
                   expand="block"
                   type="submit"
-                  className="min-h-[44px] font-semibold"
+                  className="min-h-[44px] border-2 border-slate-950 font-mono text-xs font-bold uppercase tracking-wider shadow-[4px_4px_0px_#0f172a]"
                 >
                   Guardar Incidencia
                 </IonButton>

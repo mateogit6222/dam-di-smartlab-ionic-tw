@@ -30,9 +30,9 @@ export const INITIAL_INCIDENTS: Incident[] = [
   },
 ];
 
-/** Estilos de contraste WCAG AA (>= 4.5:1) para etiquetas de prioridad. */
+/** Estilos Neo-Brutalistas de contraste WCAG AAA para etiquetas de prioridad. */
 export const PRIORITY_BADGE_STYLES: Record<IncidentPriority, string> = {
-  alta: 'bg-red-100 text-red-800 border-red-200',
-  media: 'bg-amber-100 text-amber-900 border-amber-300',
-  baja: 'bg-emerald-100 text-emerald-900 border-emerald-300',
+  alta: 'bg-red-200 text-red-950 border-slate-950',
+  media: 'bg-amber-300 text-slate-950 border-slate-950',
+  baja: 'bg-emerald-200 text-emerald-950 border-slate-950',
 };
